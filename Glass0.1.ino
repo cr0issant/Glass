@@ -82,12 +82,13 @@ void callback(NextionEventType type, INextionTouchable *widget)
       LecturePression1 = -0.8;
     }
 
-    nextionSerial.print("z0.val=7");
+    nextionSerial.print("z0.val=7"); // Mise à jour sur le Nextion 7 => -0.8 
     nextionSerial.write(0xff);
     nextionSerial.write(0xff);
     nextionSerial.write(0xff);
     
-    //delay(3000);
+    //delay(30000);
+    // Effet visuel de la progression sur 30 secondes
     for (int i=0; i <= 24; i++)
     {
       nextionSerial.print("z1.val=");
@@ -101,7 +102,7 @@ void callback(NextionEventType type, INextionTouchable *widget)
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
-      delay(125);
+      delay(1250);
     }
 
     // Partie 2/4
@@ -120,12 +121,13 @@ void callback(NextionEventType type, INextionTouchable *widget)
       LecturePression1 = 2.5; // Valeur forcée pour tester
     }
     
-    nextionSerial.print("z0.val=100");
+    nextionSerial.print("z0.val=105"); // Mise à jour sur le Nextion 105 => 2.5
     nextionSerial.write(0xff);
     nextionSerial.write(0xff);
     nextionSerial.write(0xff);
 
-    //delay(3000);
+    //delay(30000);
+    // Effet visuel de la progression sur 30 secondes
     for (int i=24; i <= 48; i++)
     {
       nextionSerial.print("z1.val=");
@@ -139,7 +141,7 @@ void callback(NextionEventType type, INextionTouchable *widget)
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
-      delay(125);
+      delay(1250);
     }
     // Partie 3/4
     digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Led verte Pression
@@ -157,12 +159,13 @@ void callback(NextionEventType type, INextionTouchable *widget)
       LecturePression1 = -0.8; // Valeur forcée pour tester
     }
     
-    nextionSerial.print("z0.val=7");
+    nextionSerial.print("z0.val=7"); // Mise à jour sur le Nextion 7 => -0.8
     nextionSerial.write(0xff);
     nextionSerial.write(0xff);
     nextionSerial.write(0xff);
 
-    //delay(3000);
+    //delay(30000);
+    // Effet visuel de la progression sur 30 secondes
     for (int i=48; i <= 72; i++)
     {
       nextionSerial.print("z1.val=");
@@ -176,7 +179,7 @@ void callback(NextionEventType type, INextionTouchable *widget)
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
-      delay(125);
+      delay(1250);
     }
     // Partie 4/4
     digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Led verte Pression
@@ -194,12 +197,13 @@ void callback(NextionEventType type, INextionTouchable *widget)
       LecturePression1 = 3; // Valeur forcée pour tester
     }
     
-    nextionSerial.print("z0.val=120");
+    nextionSerial.print("z0.val=120"); // Mise à jour sur le Nextion 7 => 3
     nextionSerial.write(0xff);
     nextionSerial.write(0xff);
     nextionSerial.write(0xff);
 
-    //delay(6000);
+    //delay(60000);
+    // Effet visuel de la progression sur 60 secondes
     for (int i=72; i <= 120; i++)
     {
       nextionSerial.print("z1.val=");
@@ -213,9 +217,10 @@ void callback(NextionEventType type, INextionTouchable *widget)
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
-      delay(125);
+      delay(1250);
     }
-    
+
+    /*
     // Fini phase test avec LED à commenter :)
     for (int i=0; i <= 10; i++)
     {
@@ -229,7 +234,7 @@ void callback(NextionEventType type, INextionTouchable *widget)
       delay(200);
 
     }
-    
+    */
     event = true;
   }
   else  if (type == NEX_EVENT_PUSH && event == true )
