@@ -92,7 +92,7 @@ void callback(NextionEventType type, INextionTouchable *widget)
     for (int i=0; i <= 24; i++)
     {
       nextionSerial.print("z1.val=");
-      nextionSerial.print(i);
+      nextionSerial.print(i*5);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
@@ -102,7 +102,7 @@ void callback(NextionEventType type, INextionTouchable *widget)
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
-      delay(1250);
+      delay(125);
     }
 
     // Partie 2/4
@@ -131,7 +131,7 @@ void callback(NextionEventType type, INextionTouchable *widget)
     for (int i=24; i <= 48; i++)
     {
       nextionSerial.print("z1.val=");
-      nextionSerial.print(i);
+      nextionSerial.print((i-24)*5);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
@@ -141,7 +141,7 @@ void callback(NextionEventType type, INextionTouchable *widget)
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
-      delay(1250);
+      delay(125);
     }
     // Partie 3/4
     digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Led verte Pression
@@ -169,7 +169,7 @@ void callback(NextionEventType type, INextionTouchable *widget)
     for (int i=48; i <= 72; i++)
     {
       nextionSerial.print("z1.val=");
-      nextionSerial.print(i);
+      nextionSerial.print((i-48)*5);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
@@ -179,7 +179,7 @@ void callback(NextionEventType type, INextionTouchable *widget)
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
-      delay(1250);
+      delay(125);
     }
     // Partie 4/4
     digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Led verte Pression
@@ -204,21 +204,24 @@ void callback(NextionEventType type, INextionTouchable *widget)
 
     //delay(60000);
     // Effet visuel de la progression sur 60 secondes
-    for (int i=72; i <= 120; i++)
+    for (int i=72; i <= (120-24); i++)
     {
       nextionSerial.print("z1.val=");
-      nextionSerial.print(i);
+      nextionSerial.print((i-72)*5);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
 
       nextionSerial.print("z2.val=");
-      nextionSerial.print(i);
+      nextionSerial.print(72+((i-72)*2));
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
-      delay(1250);
+      delay(250);
     }
+    digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Led verte Pression
+    digitalWrite(Electrovanne2, LOW); // Electrovanne 2 Led bleu Depression
+    digitalWrite(Pompe, LOW);
 
     /*
     // Fini phase test avec LED à commenter :)
