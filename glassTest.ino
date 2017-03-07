@@ -39,8 +39,8 @@ void loop()
     delay(1000);
     
     // ------------------- Partie 1/4 ------------------- 
-    digitalWrite(Electrovanne1, HIGH); // Electrovanne 1 Fermé Led verte Pression
-    digitalWrite(Electrovanne2, HIGH); // Electrovanne 2 Ouverte Led bleu Depression
+    digitalWrite(Electrovanne1, HIGH); // Electrovanne 1 Ouverte Led verte Pression
+    digitalWrite(Electrovanne2, HIGH); // Electrovanne 2 Ouverte Led bleu Pression
   }
   else {}
     
