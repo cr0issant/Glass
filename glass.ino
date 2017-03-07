@@ -9,7 +9,7 @@ Matos :
 #include <SoftwareSerial.h>
 #include <Nextion.h>
 #include <Wire.h>
-SoftwareSerial nextionSerial(10, 11); // RX, TX
+SoftwareSerial nextionSerial(0, 1); // RX, TX
 
 Nextion nex(nextionSerial, 9600);
 
