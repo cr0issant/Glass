@@ -263,4 +263,3 @@ void AvancementAzero ( void )
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
 }
-
