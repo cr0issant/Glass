@@ -31,6 +31,7 @@ String ReparationManu = "65 1 4 1 ffff ffff ffff"; // Page 1 - Réparation C "b3
 String Depart = "65 2 6 1 ffff ffff ffff"; // Page 2 - Départ réparation "b1"
 String Arret = "65 2 7 1 ffff ffff ffff"; // Page 2  - Arrêt réparation "b2"
 
+// Pression 0 bar = 35, -0.8 bar = 7, 3 bar = 120
 float Pression_1 = 0;
 int Cycle_1 = 0;
 float Pression_2 = 0;
@@ -44,6 +45,14 @@ int CycleTotal = 0;
 bool EventChoix = false;
 bool EventReparation = false;
 
+const int EncodeurPression = 5;    //  sortie Encodeur Pression
+const int EncodeurDepression = 6;  //  sortie Encodeur Depression
+const int PressionDeBase = 7;  //  sortie Encodeur Depression
+
+static long EtatPression = 0; 
+int EncodeurPressionLast = LOW;
+int EtatEncodeur = LOW;
+
 const int Electrovanne1 = 2; // Led verte Pression
 const int Electrovanne2 = 3; // Led bleu Depression
 const int Pompe = 4; // LOW Pompe coupé, HIGH en marche // Led rouge
@@ -55,12 +64,6 @@ int AvancementTotal = 0;
 
 long Temps = 0;
 int i = 0;
-
-/*
-int EncodeurRotatif1 = 0; //0 rotation sens aiguille montre, 1 l'inverse
-int EncodeurRotatif2 = 0; //0 rotation sens aiguille montre, 1 l'inverse
-*/
-
 
 void setup()
 {
@@ -81,6 +84,10 @@ void setup()
   pinMode(Pompe, OUTPUT);
   digitalWrite(Pompe, LOW);
   Temps = millis();
+  
+  pinMode(EncodeurPression,INPUT);
+  pinMode(EncodeurDepression,INPUT); 
+  pinMode(PressionDeBase,INPUT);
 
 }
 
@@ -136,20 +143,52 @@ void loop()
     }
     else if ( message == ReparationManu )
     {
-      Pression_1 = -0.8;
-      Cycle_1 = 30;
-      Pression_2 = 2.5;
-      Cycle_2 = 30;
-      Pression_3 = -0.8;
-      Cycle_3 = 30;
-      Pression_4 = 3;
-      Cycle_4 = 60;
-      CycleTotal = Cycle_1 + Cycle_2 + Cycle_3 + Cycle_4;
-      EventChoix = true;
       AvancementAzero(); // Met à 0 les barres d'avancement
+      EtatPression = 35 - 1; // Affichage
+      nextionSerial.print("z0.val=");
+      nextionSerial.print(EtatPression);
+      nextionSerial.write(0xff);
+      nextionSerial.write(0xff);
+      nextionSerial.write(0xff);
+
+      while ( EventChoix != true )
+      {
+        String message = nex.listen(); //check message nextion
+        while ( message == Depart )
+        {
+
+          EtatEncodeur = digitalRead(EncodeurPression);
+   
+          if ((EncodeurPressionLast == LOW) && (EtatEncodeur == HIGH)) 
+          {
+            if (digitalRead(EncodeurDepression) == LOW) 
+            {
+              EtatPression--;
+              EtatDeLaPression ( EtatPression );
+            }
+            else
+            {
+              EtatPression++;
+              EtatDeLaPression ( EtatPression );
+          
+            }
+            nextionSerial.print("z0.val=");
+            nextionSerial.print(EtatPression);
+            nextionSerial.write(0xff);
+            nextionSerial.write(0xff);
+            nextionSerial.write(0xff);      
+          }
+          EncodeurPressionLast = EtatEncodeur;
+        }
+        digitalWrite(Pompe, LOW);
+        digitalWrite(Electrovanne1, LOW);
+        digitalWrite(Electrovanne2, LOW);
+        
+      }
     }
     else { }
   }
+
 
   String message = nex.listen(); //check message nextion
   if ( message == Depart )
@@ -262,4 +301,27 @@ void AvancementAzero ( void )
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
+}
+
+void EtatDeLaPression ( int EtatPression )
+{
+  if ( EtatPression == 35 )
+  {
+    digitalWrite(Pompe, LOW);
+    digitalWrite(Electrovanne1, LOW);
+    digitalWrite(Electrovanne2, LOW);
+  }
+  else if ( EtatPression > 35 )
+  {
+    digitalWrite(Pompe, HIGH);
+    digitalWrite(Electrovanne1, HIGH);
+    digitalWrite(Electrovanne2, LOW);
+  }
+  else if ( EtatPression < 35 )
+  {
+    digitalWrite(Pompe, HIGH);
+    digitalWrite(Electrovanne1, LOW);
+    digitalWrite(Electrovanne2, HIGH);
+  }
+  else { }
 }
