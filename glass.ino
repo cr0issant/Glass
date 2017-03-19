@@ -163,12 +163,21 @@ void loop()
           {
             if (digitalRead(EncodeurDepression) == LOW) 
             {
-              EtatPression--;
+              if ( EtatPression >= 0 )
+              {
+                EtatPression--;
+              }
+              else { }
+
               EtatDeLaPression ( EtatPression );
             }
             else
             {
-              EtatPression++;
+              if ( EtatPression <= 120 )
+              {
+                EtatPression++;
+              }
+              else { }
               EtatDeLaPression ( EtatPression );
           
             }
