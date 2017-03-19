@@ -57,7 +57,9 @@ const int Electrovanne1 = 2; // Led verte Pression
 const int Electrovanne2 = 3; // Led bleu Depression
 const int Pompe = 4; // LOW Pompe coupé, HIGH en marche // Led rouge
 const int CapteurPression1 = A0;
-float LecturePression1 = 0;
+int LecturePression1 = 0;
+int atm = 160;
+
 
 int AvancementEtape = 0;
 int AvancementTotal = 0;
@@ -100,13 +102,13 @@ void loop()
     if ( message == ReparationRapide )
     {
     
-      Pression_1 = -0.8;
+      Pression_1 = -800;
       Cycle_1 = 30;
-      Pression_2 = 2.5;
+      Pression_2 = 2500;
       Cycle_2 = 30;
-      Pression_3 = -0.8;
+      Pression_3 = -800;
       Cycle_3 = 30;
-      Pression_4 = 3;
+      Pression_4 = 3000;
       Cycle_4 = 60;
       CycleTotal = Cycle_1 + Cycle_2 + Cycle_3 + Cycle_4;
       EventChoix = true;
@@ -115,13 +117,13 @@ void loop()
     }
     else if ( message == ReparationA )
     {
-      Pression_1 = -0.8;
+      Pression_1 = -800;
       Cycle_1 = 3;
-      Pression_2 = 2.5;
+      Pression_2 = 2500;
       Cycle_2 = 3;
-      Pression_3 = -0.8;
+      Pression_3 = -800;
       Cycle_3 = 3;
-      Pression_4 = 3;
+      Pression_4 = 3000;
       Cycle_4 = 6;
       CycleTotal = Cycle_1 + Cycle_2 + Cycle_3 + Cycle_4;
       EventChoix = true;
@@ -129,13 +131,13 @@ void loop()
     }
     else if ( message == ReparationB )
     {
-      Pression_1 = -0.8;
+      Pression_1 = -800;
       Cycle_1 = 30;
-      Pression_2 = 2.5;
+      Pression_2 = 2500;
       Cycle_2 = 30;
-      Pression_3 = -0.8;
+      Pression_3 = -800;
       Cycle_3 = 30;
-      Pression_4 = 3;
+      Pression_4 = 3000;
       Cycle_4 = 60;
       CycleTotal = Cycle_1 + Cycle_2 + Cycle_3 + Cycle_4;
       EventChoix = true;
@@ -168,8 +170,7 @@ void loop()
                 EtatPression--;
               }
               else { }
-
-              EtatDeLaPression ( EtatPression );
+              EtatDeLaPression ( EtatPression, CheckPression ( CapteurPression1, atm ) );
             }
             else
             {
@@ -178,7 +179,7 @@ void loop()
                 EtatPression++;
               }
               else { }
-              EtatDeLaPression ( EtatPression );
+              EtatDeLaPression ( EtatPression, CheckPression ( CapteurPression1, atm ) );;
           
             }
             nextionSerial.print("z0.val=");
@@ -212,17 +213,17 @@ void loop()
     // ------------------- Partie 2/4 ------------------- 
     digitalWrite(Electrovanne1, HIGH); // Electrovanne 1 Ouverte Led verte Pression
     digitalWrite(Electrovanne2, LOW); // Electrovanne 2 Fermé Led bleu Depression
-    MiseEnPression ( Pression_2, Cycle_2, 105, -0.8, Cycle_1, Cycle_1 + Cycle_2); // 2.5
+    MiseEnPression ( Pression_2, Cycle_2, 105, -800, Cycle_1, Cycle_1 + Cycle_2); // 2.5
 
     // ------------------- Partie 3/4 ------------------- 
     digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Fermé Led verte Pression
     digitalWrite(Electrovanne2, HIGH); // Electrovanne 2 Ouverte Led bleu Depression
-    MiseEnPression ( Pression_3, Cycle_3, 7, 2.5, Cycle_1 + Cycle_2, Cycle_1 + Cycle_2 + Cycle_3 ); // -0.8
+    MiseEnPression ( Pression_3, Cycle_3, 7, 2500, Cycle_1 + Cycle_2, Cycle_1 + Cycle_2 + Cycle_3 ); // -0.8
     
     // ------------------- Partie 4/4 ------------------- 
     digitalWrite(Electrovanne1, HIGH); // Electrovanne 1 Ouverte Led verte Pression
     digitalWrite(Electrovanne2, LOW); // Electrovanne 2 Fermé Led bleu Depression
-    MiseEnPression ( Pression_4, Cycle_4, 120, -0.8, Cycle_1 + Cycle_2 + Cycle_3, CycleTotal ); // 3
+    MiseEnPression ( Pression_4, Cycle_4, 120, -800, Cycle_1 + Cycle_2 + Cycle_3, CycleTotal ); // 3
 
     EventReparation = true;
   }
@@ -231,7 +232,7 @@ void loop()
 }
 
 
-int MiseEnPression ( float Pression, int Cycle, int ForcerPression, int LecturePression, int Etape, int EtapeSuivante )
+int MiseEnPression ( int Pression, int Cycle, int ForcerPression, int LecturePression, int Etape, int EtapeSuivante )
 { 
     // Tant que la pression n'est pas atteinte
     if ( LecturePression1 >= 0 )
@@ -312,7 +313,7 @@ void AvancementAzero ( void )
         nextionSerial.write(0xff);
 }
 
-void EtatDeLaPression ( int EtatPression )
+void EtatDeLaPression ( int EtatPression, int CheckPression )
 {
   if ( EtatPression == 35 )
   {
@@ -322,15 +323,40 @@ void EtatDeLaPression ( int EtatPression )
   }
   else if ( EtatPression > 35 )
   {
+    if ( map(EtatPression, 0, 120, -1000, 3000) > CheckPression )
+    {
+      digitalWrite(Pompe, LOW);
+    }
+    else
+    {
+      digitalWrite(Pompe, HIGH);
+    }
     digitalWrite(Pompe, HIGH);
     digitalWrite(Electrovanne1, HIGH);
     digitalWrite(Electrovanne2, LOW);
   }
   else if ( EtatPression < 35 )
   {
+    if ( map(EtatPression, 0, 120, -1000, 3000) < CheckPression )
+    {
+      digitalWrite(Pompe, LOW);
+    }
+    else
+    {
+      digitalWrite(Pompe, HIGH);
+    }
     digitalWrite(Pompe, HIGH);
     digitalWrite(Electrovanne1, LOW);
     digitalWrite(Electrovanne2, HIGH);
   }
   else { }
+}
+
+int CheckPression ( const int CapteurPression1, int atm )
+{
+  int pressureSensorRaw = analogRead(CapteurPression1); // Lis la valeur analoogique sur le pin A0
+  int pressureSensorVoltage = pressureSensorRaw * (5.0 / 1023.0);  // Convertis les volts en valeur de pression
+  int millibar = ( (pressureSensorVoltage + 0.2) * 700.0/4.5 ) * 10;  // Convertis en millibar
+  millibar = millibar - atm * 10;
+  return millibar;
 }
