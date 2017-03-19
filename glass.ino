@@ -337,7 +337,7 @@ void EtatDeLaPression ( int EtatPression, int CheckPression )
   }
   else if ( EtatPression < 35 )
   {
-    if ( map(EtatPression, 0, 120, -1000, 3000) < CheckPression )
+    if ( map(EtatPression, 0, 120, -1000, 3000) * (-1) < CheckPression )
     {
       digitalWrite(Pompe, LOW);
     }
