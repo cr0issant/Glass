@@ -170,7 +170,8 @@ void loop()
                 EtatPression--;
               }
               else { }
-              EtatDeLaPression ( EtatPression, CheckPression ( CapteurPression1, atm ) );
+              //EtatDeLaPression ( EtatPression, CheckPression ( CapteurPression1, atm ) );
+              EtatDeLaPression ( EtatPression, CheckPressionSimulation ( CapteurPression1 ) );
             }
             else
             {
@@ -179,7 +180,8 @@ void loop()
                 EtatPression++;
               }
               else { }
-              EtatDeLaPression ( EtatPression, CheckPression ( CapteurPression1, atm ) );;
+              //EtatDeLaPression ( EtatPression, CheckPression ( CapteurPression1, atm ) );
+              EtatDeLaPression ( EtatPression, CheckPressionSimulation ( CapteurPression1 ) );
           
             }
             nextionSerial.print("z0.val=");
@@ -189,6 +191,14 @@ void loop()
             nextionSerial.write(0xff);      
           }
           EncodeurPressionLast = EtatEncodeur;
+          /*
+          EtatDeLaPression ( EtatPression, CheckPressionSimulation ( CapteurPression1 ) );
+          nextionSerial.print("z1.val=");
+          nextionSerial.print(CheckPressionSimulation ( CapteurPression1 ));
+          nextionSerial.write(0xff);
+          nextionSerial.write(0xff);
+          nextionSerial.write(0xff); 
+          */
         }
         digitalWrite(Pompe, LOW);
         digitalWrite(Electrovanne1, LOW);
@@ -358,5 +368,12 @@ int CheckPression ( const int CapteurPression1, int atm )
   int pressureSensorVoltage = pressureSensorRaw * (5.0 / 1023.0);  // Convertis les volts en valeur de pression
   int millibar = ( (pressureSensorVoltage + 0.2) * 700.0/4.5 ) * 10;  // Convertis en millibar
   millibar = millibar - atm * 10;
+  return millibar;
+}
+
+int CheckPressionSimulation ( const int CapteurPression1 )
+{
+  int pressureSensorRaw = analogRead(CapteurPression1); // Lis la valeur analoogique sur le pin A0
+  int millibar = map(pressureSensorRaw, 23, 503, 0, 120); // 0 = -1000 , 120 = 3000
   return millibar;
 }
