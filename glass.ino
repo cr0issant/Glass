@@ -152,7 +152,8 @@ void loop()
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
-
+      
+      // Boucle du programme de réparation manuel
       while ( EventChoix != true )
       {
         String message = nex.listen(); //check message nextion
@@ -160,7 +161,7 @@ void loop()
         {
 
           EtatEncodeur = digitalRead(EncodeurPression);
-   
+          // Condition pour jouer avec l'encodeur
           if ((EncodeurPressionLast == LOW) && (EtatEncodeur == HIGH)) 
           {
             if (digitalRead(EncodeurDepression) == LOW) 
@@ -170,8 +171,6 @@ void loop()
                 EtatPression--;
               }
               else { }
-              //EtatDeLaPression ( EtatPression, CheckPression ( CapteurPression1, atm ) );
-              EtatDeLaPression ( EtatPression, CheckPressionSimulation ( CapteurPression1 ) );
             }
             else
             {
@@ -180,25 +179,31 @@ void loop()
                 EtatPression++;
               }
               else { }
-              //EtatDeLaPression ( EtatPression, CheckPression ( CapteurPression1, atm ) );
-              EtatDeLaPression ( EtatPression, CheckPressionSimulation ( CapteurPression1 ) );
-          
+         
             }
+            // Mise à jour de l'aiguille de pression de l'encodeur
             nextionSerial.print("z0.val=");
             nextionSerial.print(EtatPression);
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);      
           }
+          else 
+          {
+
+            EtatDeLaPression ( EtatPression, CheckPression ( CapteurPression1, atm ) );
+            // Cette partie sert à afficher les millibar du capteur, mais bizarrement ça fait planter l'encodeur, à creuser
+            /*
+            nextionSerial.print("z1.val=");
+            nextionSerial.print(CheckPression ( CapteurPression1 ));
+            nextionSerial.write(0xff);
+            nextionSerial.write(0xff);
+            nextionSerial.write(0xff); 
+            //*/
+          }
           EncodeurPressionLast = EtatEncodeur;
-          /*
-          EtatDeLaPression ( EtatPression, CheckPressionSimulation ( CapteurPression1 ) );
-          nextionSerial.print("z1.val=");
-          nextionSerial.print(CheckPressionSimulation ( CapteurPression1 ));
-          nextionSerial.write(0xff);
-          nextionSerial.write(0xff);
-          nextionSerial.write(0xff); 
-          */
+
+
         }
         digitalWrite(Pompe, LOW);
         digitalWrite(Electrovanne1, LOW);
@@ -218,22 +223,22 @@ void loop()
     // ------------------- Partie 1/4 ------------------- 
     digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Fermé Led verte Pression
     digitalWrite(Electrovanne2, HIGH); // Electrovanne 2 Ouverte Led bleu Depression
-    MiseEnPression ( Pression_1, Cycle_1, 7, 0, 0, Cycle_1); // -0.8
+    MiseEnPression ( map(Pression_1, -1000, 3000, 0, 120), Cycle_1, 7, CapteurPression1, 0, Cycle_1); // -0.8
 
     // ------------------- Partie 2/4 ------------------- 
     digitalWrite(Electrovanne1, HIGH); // Electrovanne 1 Ouverte Led verte Pression
     digitalWrite(Electrovanne2, LOW); // Electrovanne 2 Fermé Led bleu Depression
-    MiseEnPression ( Pression_2, Cycle_2, 105, -800, Cycle_1, Cycle_1 + Cycle_2); // 2.5
+    MiseEnPression ( map(Pression_2, -1000, 3000, 0, 120), Cycle_2, 105, CapteurPression1, Cycle_1, Cycle_1 + Cycle_2); // 2.5
 
     // ------------------- Partie 3/4 ------------------- 
     digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Fermé Led verte Pression
     digitalWrite(Electrovanne2, HIGH); // Electrovanne 2 Ouverte Led bleu Depression
-    MiseEnPression ( Pression_3, Cycle_3, 7, 2500, Cycle_1 + Cycle_2, Cycle_1 + Cycle_2 + Cycle_3 ); // -0.8
+    MiseEnPression ( map(Pression_3, -1000, 3000, 0, 120), Cycle_3, 7, CapteurPression1, Cycle_1 + Cycle_2, Cycle_1 + Cycle_2 + Cycle_3 ); // -0.8
     
     // ------------------- Partie 4/4 ------------------- 
     digitalWrite(Electrovanne1, HIGH); // Electrovanne 1 Ouverte Led verte Pression
     digitalWrite(Electrovanne2, LOW); // Electrovanne 2 Fermé Led bleu Depression
-    MiseEnPression ( Pression_4, Cycle_4, 120, -800, Cycle_1 + Cycle_2 + Cycle_3, CycleTotal ); // 3
+    MiseEnPression ( map(Pression_4, -1000, 3000, 0, 120), Cycle_4, 120, CapteurPression1, Cycle_1 + Cycle_2 + Cycle_3, CycleTotal ); // 3
 
     EventReparation = true;
   }
@@ -242,40 +247,21 @@ void loop()
 }
 
 
-int MiseEnPression ( int Pression, int Cycle, int ForcerPression, int LecturePression, int Etape, int EtapeSuivante )
+void MiseEnPression ( int Pression, int Cycle, int ForcerPression, int CapteurPression1, int Etape, int EtapeSuivante )
 { 
-    // Tant que la pression n'est pas atteinte
-    if ( LecturePression1 >= 0 )
-    {
-      while ( LecturePression1 > Pression )
-      {
-        LecturePression1 = analogRead(CapteurPression1);
-        delay(10);
-        digitalWrite(Pompe, HIGH);
-        delay(1000); // Simule le temps de mise en pression
-        LecturePression1 = Pression; // Force la pression pour tester
-      }
-    }
-    else
-    {
-      while ( LecturePression1 < Pression )
-      {
-        LecturePression1 = analogRead(CapteurPression1);
-        delay(10);
-        digitalWrite(Pompe, HIGH);
-        delay(1000); // Simule le temps de mise en pression
-        LecturePression1 = Pression; // Force la pression pour tester
-      }
-    }
-    digitalWrite(Pompe, LOW);
-
-
     nextionSerial.print("z0.val=");
-    nextionSerial.print(ForcerPression);
+    nextionSerial.print(Pression);
     nextionSerial.write(0xff);
     nextionSerial.write(0xff);
     nextionSerial.write(0xff);
     
+    // Tant que la pression n'est pas atteinte
+    bool VerifPression = 0;
+    while ( VerifPression != 1 )
+    {
+      VerifPression = EtatDeLaPression ( Pression, CheckPression ( CapteurPression1, atm ) );
+    }
+
     // Effet visuel de la progression sur XX secondes
     unsigned long currentMillis = millis();
     unsigned long previousMillis = millis();
@@ -300,6 +286,7 @@ int MiseEnPression ( int Pression, int Cycle, int ForcerPression, int LecturePre
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
+        EtatDeLaPression ( Pression, CheckPression ( CapteurPression1, atm ) );
 
     }
 
@@ -323,45 +310,40 @@ void AvancementAzero ( void )
         nextionSerial.write(0xff);
 }
 
-void EtatDeLaPression ( int EtatPression, int CheckPression )
+bool EtatDeLaPression ( int EtatPression, int CheckPression )
 {
-  if ( EtatPression == 35 )
-  {
-    digitalWrite(Pompe, LOW);
-    digitalWrite(Electrovanne1, LOW);
-    digitalWrite(Electrovanne2, LOW);
-  }
-  else if ( EtatPression > 35 )
-  {
-    if ( map(EtatPression, 0, 120, -1000, 3000) > CheckPression )
-    {
-      digitalWrite(Pompe, LOW);
-    }
-    else
+
+    if ( CheckPression <= map(EtatPression, 0, 120, -1000, 3000) - 100 )
     {
       digitalWrite(Pompe, HIGH);
+      digitalWrite(Electrovanne1, HIGH);
+      digitalWrite(Electrovanne2, LOW);
+      return 0;
     }
-    digitalWrite(Pompe, HIGH);
-    digitalWrite(Electrovanne1, HIGH);
-    digitalWrite(Electrovanne2, LOW);
-  }
-  else if ( EtatPression < 35 )
-  {
-    if ( map(EtatPression, 0, 120, -1000, 3000) < CheckPression *(-1) )
-    {
-      digitalWrite(Pompe, LOW);
-    }
-    else
+    else if ( CheckPression >= map(EtatPression, 0, 120, -1000, 3000) + 100  )
     {
       digitalWrite(Pompe, HIGH);
+      digitalWrite(Electrovanne1, LOW);
+      digitalWrite(Electrovanne2, HIGH);
+      return 0;
     }
-    digitalWrite(Pompe, HIGH);
-    digitalWrite(Electrovanne1, LOW);
-    digitalWrite(Electrovanne2, HIGH);
-  }
-  else { }
+    else if ( ( CheckPression > 0 ) && ( map(EtatPression, 0, 120, -1000, 3000) - 100 < CheckPression < map(EtatPression, 0, 120, -1000, 3000) + 100 )  )
+    {
+      digitalWrite(Pompe, LOW);
+      digitalWrite(Electrovanne1, HIGH);
+      digitalWrite(Electrovanne2, HIGH);
+      return 1;
+    }
+    else if ( ( CheckPression < 0 ) && ( map(EtatPression, 0, 120, -1000, 3000) + 100 > CheckPression > map(EtatPression, 0, 120, -1000, 3000) - 100 )  )
+    {
+      digitalWrite(Pompe, LOW);
+      digitalWrite(Electrovanne1, HIGH);
+      digitalWrite(Electrovanne2, HIGH);
+      return 1;
+    }
 }
 
+// Fonction récupérant la valeur du capteur de pression
 int CheckPression ( const int CapteurPression1, int atm )
 {
   int pressureSensorRaw = analogRead(CapteurPression1); // Lis la valeur analoogique sur le pin A0
@@ -370,10 +352,11 @@ int CheckPression ( const int CapteurPression1, int atm )
   millibar = millibar - atm * 10;
   return millibar;
 }
-
+// Fonction simulant capteur de pression avec un servomoteur
 int CheckPressionSimulation ( const int CapteurPression1 )
 {
   int pressureSensorRaw = analogRead(CapteurPression1); // Lis la valeur analoogique sur le pin A0
-  int millibar = map(pressureSensorRaw, 23, 503, 0, 120); // 0 = -1000 , 120 = 3000
+  int millibar = map(pressureSensorRaw, 17, 645, -800, 3000); // 0 = -1000 , 120 = 3000
   return millibar;
+  //return pressureSensorRaw;
 }
