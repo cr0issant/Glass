@@ -193,7 +193,7 @@ void loop()
 
             EtatDeLaPression ( EtatPression, CheckPression ( CapteurPression1, atm ) );
             // Cette partie sert à afficher les millibar du capteur, mais bizarrement ça fait planter l'encodeur, à creuser
-            /*
+            ///*
             nextionSerial.print("z1.val=");
             nextionSerial.print(CheckPression ( CapteurPression1, atm ) );
             nextionSerial.write(0xff);
