@@ -58,7 +58,7 @@ const int Electrovanne2 = 3; // Led bleu Depression
 const int Pompe = 4; // LOW Pompe coupé, HIGH en marche // Led rouge
 const int CapteurPression1 = A0;
 int LecturePression1 = 0;
-int atm = 160;
+float atm = 1.56;
 
 
 int AvancementEtape = 0;
@@ -193,9 +193,9 @@ void loop()
 
             EtatDeLaPression ( EtatPression, CheckPression ( CapteurPression1, atm ) );
             // Cette partie sert à afficher les millibar du capteur, mais bizarrement ça fait planter l'encodeur, à creuser
-            ///*
+            /*
             nextionSerial.print("z1.val=");
-            nextionSerial.print(CheckPression ( CapteurPression1, atm ) );
+            nextionSerial.print(CheckPression ( CapteurPression1 ));
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
             nextionSerial.write(0xff); 
@@ -268,6 +268,7 @@ void MiseEnPression ( int Pression, int Cycle, int ForcerPression, int CapteurPr
     while ( (currentMillis - previousMillis) < (Cycle * 1000) )
     {
 
+        // Ajouter condition pour envoyer la pression en cas de manque
         
         currentMillis = millis();
         AvancementEtape = map(currentMillis - previousMillis, 0, Cycle * 1000, 0, 100);
@@ -329,26 +330,28 @@ bool EtatDeLaPression ( int EtatPression, int CheckPression )
     else if ( ( CheckPression > 0 ) && ( map(EtatPression, 0, 120, -1000, 3000) - 100 < CheckPression < map(EtatPression, 0, 120, -1000, 3000) + 100 )  )
     {
       digitalWrite(Pompe, LOW);
-      digitalWrite(Electrovanne1, LOW);
-      digitalWrite(Electrovanne2, LOW);
+      digitalWrite(Electrovanne1, HIGH);
+      digitalWrite(Electrovanne2, HIGH);
       return 1;
     }
     else if ( ( CheckPression < 0 ) && ( map(EtatPression, 0, 120, -1000, 3000) + 100 > CheckPression > map(EtatPression, 0, 120, -1000, 3000) - 100 )  )
     {
       digitalWrite(Pompe, LOW);
-      digitalWrite(Electrovanne1, LOW);
-      digitalWrite(Electrovanne2, LOW);
+      digitalWrite(Electrovanne1, HIGH);
+      digitalWrite(Electrovanne2, HIGH);
       return 1;
     }
 }
 
 // Fonction récupérant la valeur du capteur de pression
-int CheckPression ( const int CapteurPression1, int atm )
+int CheckPression ( const int CapteurPression1, float atm )
 {
-  int pressureSensorRaw = analogRead(CapteurPression1); // Lis la valeur analoogique sur le pin A0
-  int pressureSensorVoltage = pressureSensorRaw * (5.0 / 1023.0);  // Convertis les volts en valeur de pression
-  int millibar = ( (pressureSensorVoltage + 0.2) * 700.0/4.5 ) * 10;  // Convertis en millibar
-  millibar = millibar - atm * 10;
+
+  int pressureSensorRaw = analogRead(CapteurPression1); //Reads the sensor raw value on analog port 0
+  float pressureSensorVoltage = pressureSensorRaw * (5.0 / 1023.0);  // convert the raw reading to voltage
+  float bar = (pressureSensorVoltage + 0.2) * 7/4.5;
+  bar = bar - atm;
+  int millibar = (int) ( bar * 1000 );
   return millibar;
 }
 // Fonction simulant capteur de pression avec un servomoteur
