@@ -329,15 +329,15 @@ bool EtatDeLaPression ( int EtatPression, int CheckPression )
     else if ( ( CheckPression > 0 ) && ( map(EtatPression, 0, 120, -1000, 3000) - 100 < CheckPression < map(EtatPression, 0, 120, -1000, 3000) + 100 )  )
     {
       digitalWrite(Pompe, LOW);
-      digitalWrite(Electrovanne1, HIGH);
-      digitalWrite(Electrovanne2, HIGH);
+      digitalWrite(Electrovanne1, LOW);
+      digitalWrite(Electrovanne2, LOW);
       return 1;
     }
     else if ( ( CheckPression < 0 ) && ( map(EtatPression, 0, 120, -1000, 3000) + 100 > CheckPression > map(EtatPression, 0, 120, -1000, 3000) - 100 )  )
     {
       digitalWrite(Pompe, LOW);
-      digitalWrite(Electrovanne1, HIGH);
-      digitalWrite(Electrovanne2, HIGH);
+      digitalWrite(Electrovanne1, LOW);
+      digitalWrite(Electrovanne2, LOW);
       return 1;
     }
 }
