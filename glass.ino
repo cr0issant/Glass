@@ -268,7 +268,6 @@ void MiseEnPression ( int Pression, int Cycle, int ForcerPression, int CapteurPr
     while ( (currentMillis - previousMillis) < (Cycle * 1000) )
     {
 
-        // Ajouter condition pour envoyer la pression en cas de manque
         
         currentMillis = millis();
         AvancementEtape = map(currentMillis - previousMillis, 0, Cycle * 1000, 0, 100);
