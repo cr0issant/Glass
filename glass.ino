@@ -195,7 +195,7 @@ void loop()
             // Cette partie sert à afficher les millibar du capteur, mais bizarrement ça fait planter l'encodeur, à creuser
             /*
             nextionSerial.print("z1.val=");
-            nextionSerial.print(CheckPression ( CapteurPression1 ));
+            nextionSerial.print(CheckPression ( CapteurPression1, atm ) );
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
             nextionSerial.write(0xff); 
