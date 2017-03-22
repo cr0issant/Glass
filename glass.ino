@@ -186,19 +186,21 @@ void loop()
             nextionSerial.print(EtatPression);
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
-            nextionSerial.write(0xff);      
+            nextionSerial.write(0xff);
+
           }
           else 
           {
 
-            EtatDeLaPression ( EtatPression, CheckPression ( CapteurPression1, atm ) );
+            //EtatDeLaPression ( EtatPression, CheckPression ( CapteurPression1, atm ) );
+            EtatDeLaPression ( EtatPression, CheckPressionSimulation ( CapteurPression1 ) );
             // Cette partie sert à afficher les millibar du capteur, mais bizarrement ça fait planter l'encodeur, à creuser
             /*
             nextionSerial.print("z1.val=");
-            nextionSerial.print(CheckPression ( CapteurPression1 ));
+            nextionSerial.print(CheckPressionSimulation ( CapteurPression1 ));
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
-            nextionSerial.write(0xff); 
+            nextionSerial.write(0xff);
             //*/
           }
           EncodeurPressionLast = EtatEncodeur;
@@ -313,32 +315,32 @@ void AvancementAzero ( void )
 bool EtatDeLaPression ( int EtatPression, int CheckPression )
 {
 
-    if ( CheckPression <= map(EtatPression, 0, 120, -1000, 3000) - 100 )
+    if ( CheckPression <= map(EtatPression, 0, 120, -1000, 3000) - 50 )
     {
       digitalWrite(Pompe, HIGH);
       digitalWrite(Electrovanne1, HIGH);
       digitalWrite(Electrovanne2, LOW);
       return 0;
     }
-    else if ( CheckPression >= map(EtatPression, 0, 120, -1000, 3000) + 100  )
+    else if ( CheckPression >= map(EtatPression, 0, 120, -1000, 3000) + 50  )
     {
       digitalWrite(Pompe, HIGH);
       digitalWrite(Electrovanne1, LOW);
       digitalWrite(Electrovanne2, HIGH);
       return 0;
     }
-    else if ( ( CheckPression > 0 ) && ( map(EtatPression, 0, 120, -1000, 3000) - 100 < CheckPression < map(EtatPression, 0, 120, -1000, 3000) + 100 )  )
+    else if ( ( CheckPression > 0 ) && ( map(EtatPression, 0, 120, -1000, 3000) - 50 < CheckPression < map(EtatPression, 0, 120, -1000, 3000) + 50 )  )
     {
       digitalWrite(Pompe, LOW);
-      digitalWrite(Electrovanne1, HIGH);
-      digitalWrite(Electrovanne2, HIGH);
+      digitalWrite(Electrovanne1, LOW);
+      digitalWrite(Electrovanne2, LOW);
       return 1;
     }
-    else if ( ( CheckPression < 0 ) && ( map(EtatPression, 0, 120, -1000, 3000) + 100 > CheckPression > map(EtatPression, 0, 120, -1000, 3000) - 100 )  )
+    else if ( ( CheckPression < 0 ) && ( map(EtatPression, 0, 120, -1000, 3000) + 50 > CheckPression > map(EtatPression, 0, 120, -1000, 3000) - 50 )  )
     {
       digitalWrite(Pompe, LOW);
-      digitalWrite(Electrovanne1, HIGH);
-      digitalWrite(Electrovanne2, HIGH);
+      digitalWrite(Electrovanne1, LOW);
+      digitalWrite(Electrovanne2, LOW);
       return 1;
     }
 }
@@ -358,7 +360,7 @@ int CheckPression ( const int CapteurPression1, float atm )
 int CheckPressionSimulation ( const int CapteurPression1 )
 {
   int pressureSensorRaw = analogRead(CapteurPression1); // Lis la valeur analoogique sur le pin A0
-  int millibar = map(pressureSensorRaw, 17, 645, -800, 3000); // 0 = -1000 , 120 = 3000
+  int millibar = map(pressureSensorRaw, 17, 645, -1000, 3000); // 0 = -1000 , 120 = 3000
   return millibar;
   //return pressureSensorRaw;
 }
