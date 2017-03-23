@@ -66,7 +66,7 @@ int AvancementTotal = 0;
 
 long Temps = 0;
 int i = 0;
-bool Phase = 0; // Phase test avec servo => 0, Phase prod avec capteur pression => 1
+bool Phase = 1; // Phase test avec servo => 0, Phase prod avec capteur pression => 1
 
 void setup()
 {
