@@ -56,9 +56,10 @@ int EtatEncodeur = LOW;
 const int Electrovanne1 = 2; // Led verte Pression
 const int Electrovanne2 = 3; // Led bleu Depression
 const int Pompe = 4; // LOW Pompe coupé, HIGH en marche // Led rouge
-const int CapteurPression1 = A0;
+int CapteurPression1 = A0;
 int LecturePression1 = 0;
 float atm = 1.56;
+int millibar = 0;
 
 
 int AvancementEtape = 0;
@@ -340,6 +341,7 @@ bool EtatDeLaPression ( int EtatPression, int CheckPression )
 // Fonction récupérant la valeur du capteur de pression
 int CheckPression ( const int CapteurPression1, float atm, bool Phase )
 {
+  /*
   if ( Phase == 0 )
   {
     int pressureSensorRaw = analogRead(CapteurPression1); // Lis la valeur analoogique sur le pin A0
@@ -349,11 +351,12 @@ int CheckPression ( const int CapteurPression1, float atm, bool Phase )
   }
   else
   {
+  */
     int pressureSensorRaw = analogRead(CapteurPression1); //Reads the sensor raw value on analog port 0
     float pressureSensorVoltage = pressureSensorRaw * (5.0 / 1023.0);  // convert the raw reading to voltage
     float bar = (pressureSensorVoltage + 0.2) * 7/4.5;
     bar = bar - atm;
     int millibar = (int) ( bar * 1000 );
     return millibar;
-  }
+  //}
 }
