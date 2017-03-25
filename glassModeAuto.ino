@@ -224,7 +224,7 @@ bool EtatDeLaPression ( int EtatPression, int CheckLaPression )
     else if ( ( CheckLaPression > 0 ) && ( EtatPression - 50 < CheckLaPression < EtatPression + 50 )  )
     {
       digitalWrite(Pompe, LOW);
-      digitalWrite(Electrovanne1, LOW);
+      digitalWrite(Electrovanne1, HIGH);
       digitalWrite(Electrovanne2, LOW);
       return 1;
     }
@@ -232,7 +232,7 @@ bool EtatDeLaPression ( int EtatPression, int CheckLaPression )
     {
       digitalWrite(Pompe, LOW);
       digitalWrite(Electrovanne1, LOW);
-      digitalWrite(Electrovanne2, LOW);
+      digitalWrite(Electrovanne2, HIGH);
       return 1;
     }
     delay(1);

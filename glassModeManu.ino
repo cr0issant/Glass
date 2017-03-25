@@ -103,7 +103,6 @@ void loop()
         while ( message == Depart )
         {
           if ( nex.listen() == Arret ) { message = Arret; }
-          delay(1);
           EtatEncodeur = digitalRead(EncodeurPression);
           // Condition pour jouer avec l'encodeur
           if ((EncodeurPressionLast == LOW) && (EtatEncodeur == HIGH)) 
@@ -131,15 +130,12 @@ void loop()
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
-            delay(1);
             if ( nex.listen() == Arret ) { message = Arret; }
-            delay(1);
           }
           else 
           {
             EtatDeLaPression ( map( EtatPression, 0, 120, -1000, 3000 ), CheckPression ( CapteurPression1, atm, Phase ) );
             if ( nex.listen() == Arret ) { message = Arret; }
-            delay(1);
             // Cette partie sert à afficher les millibar du capteur, mais bizarrement ça fait planter l'encodeur, à creuser
             /*
             nextionSerial.print("z1.val=");
@@ -151,11 +147,10 @@ void loop()
           }
           EncodeurPressionLast = EtatEncodeur;
           if ( nex.listen() == Arret ) { message = Arret; }
-          delay(1);
         }
         digitalWrite(Pompe, LOW);
-        digitalWrite(Electrovanne1, LOW);
-        digitalWrite(Electrovanne2, LOW);
+        //digitalWrite(Electrovanne1, LOW);
+        //digitalWrite(Electrovanne2, LOW);
       }
 }
 
@@ -209,8 +204,8 @@ void MiseEnPression ( int Pression, int Cycle, int ForcerPression, int CapteurPr
         delay(1);
         EtatDeLaPression ( Pression, CheckPression ( CapteurPression1, atm, Phase ) );
     }
-    digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Led verte Pression
-    digitalWrite(Electrovanne2, LOW); // Electrovanne 2 Led bleu Depression
+    //digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Led verte Pression
+    //digitalWrite(Electrovanne2, LOW); // Electrovanne 2 Led bleu Depression
     digitalWrite(Pompe, LOW);
 }
 
@@ -249,7 +244,7 @@ bool EtatDeLaPression ( int EtatPression, int CheckLaPression )
     else if ( ( CheckLaPression > 0 ) && ( EtatPression - 50 < CheckLaPression < EtatPression + 50 )  )
     {
       digitalWrite(Pompe, LOW);
-      digitalWrite(Electrovanne1, LOW);
+      digitalWrite(Electrovanne1, HIGH);
       digitalWrite(Electrovanne2, LOW);
       return 1;
     }
@@ -257,7 +252,7 @@ bool EtatDeLaPression ( int EtatPression, int CheckLaPression )
     {
       digitalWrite(Pompe, LOW);
       digitalWrite(Electrovanne1, LOW);
-      digitalWrite(Electrovanne2, LOW);
+      digitalWrite(Electrovanne2, HIGH);
       return 1;
     }
     delay(1);
