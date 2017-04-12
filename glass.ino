@@ -187,20 +187,19 @@ void loop()
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
+            delay(1);
+            nextionSerial.print("z1.val=");
+            nextionSerial.print(CheckPression ( CapteurPression1, atm, Phase ));
+            nextionSerial.write(0xff);
+            nextionSerial.write(0xff);
+            nextionSerial.write(0xff);
+            delay(1);
             if ( nex.listen() == Arret ) { message = Arret; }
           }
           else 
           {
             EtatDeLaPression ( map( EtatPression, 0, 120, -1000, 3000 ), CheckPression ( CapteurPression1, atm, Phase ) );
             if ( nex.listen() == Arret ) { message = Arret; }
-            // Cette partie sert à afficher les millibar du capteur, mais bizarrement ça fait planter l'encodeur, à creuser
-            /*
-            nextionSerial.print("z1.val=");
-            nextionSerial.print(CheckPression ( CapteurPression1, atm, Phase ));
-            nextionSerial.write(0xff);
-            nextionSerial.write(0xff);
-            nextionSerial.write(0xff);
-            //*/
           }
           EncodeurPressionLast = EtatEncodeur;
           if ( nex.listen() == Arret ) { message = Arret; }
@@ -260,6 +259,12 @@ void MiseEnPression ( int Pression, int Cycle, int ForcerPression, int CapteurPr
       VerifPression = EtatDeLaPression ( Pression, CheckPression ( CapteurPression1, atm, Phase ) );
       nextionSerial.print("z0.val=");
       nextionSerial.print(map( CheckPression ( CapteurPression1, atm, Phase ), -1000, 3000, 0, 120 ) );
+      nextionSerial.write(0xff);
+      nextionSerial.write(0xff);
+      nextionSerial.write(0xff);
+      delay(1);
+      nextionSerial.print("z1.val=");
+      nextionSerial.print( CheckPression ( CapteurPression1, atm, Phase ) );
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
