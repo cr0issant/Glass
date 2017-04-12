@@ -53,8 +53,8 @@ static long EtatPression = 0;
 int EncodeurPressionLast = LOW;
 int EtatEncodeur = LOW;
 
-const int Electrovanne1 = 2; // Led verte Pression
-const int Electrovanne2 = 3; // Led bleu Depression
+const int Electrovanne1 = 3; // Led verte Pression
+const int Electrovanne2 = 2; // Led bleu Depression
 const int Pompe = 4; // LOW Pompe coupé, HIGH en marche // Led rouge
 int CapteurPression1 = A0;
 int LecturePression1 = 0;
