@@ -60,7 +60,8 @@ int CapteurPression1 = A0;
 int LecturePression1 = 0;
 float atm = 1.56;
 int millibar = 0;
-
+const int ArretUrgence = 12;
+int ArretUrgenceState = 0;
 
 int AvancementEtape = 0;
 int AvancementTotal = 0;
@@ -74,7 +75,8 @@ void setup()
   Serial.begin(9600);
   pinMode(Electrovanne1, OUTPUT);
   pinMode(Electrovanne2, OUTPUT);
-
+  pinMode(ArretUrgence, INPUT);
+  
   nextionSerial.begin(9600);
   nex.init();
 
@@ -152,19 +154,25 @@ void loop()
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       delay(1);
-      
+        
       // Boucle du programme de réparation manuel
       while ( EventChoix != true )
       {
         message = nex.listen(); //check message nextion
         while ( message == Depart )
         {
-          if ( nex.listen() == Arret ) { message = Arret; }
+          if ( fonctionArretUrgence ( ArretUrgence ) == true) 
+          {
+             // On continue
+          } 
+          else 
+          {
+             message = Arret; EventChoix = true;
+          }
           EtatEncodeur = digitalRead(EncodeurPression);
           // Condition pour jouer avec l'encodeur
           if ((EncodeurPressionLast == LOW) && (EtatEncodeur == HIGH)) 
           {
-            if ( nex.listen() == Arret ) { message = Arret; }
             if (digitalRead(EncodeurDepression) == LOW) 
             {
               if ( EtatPression >= 0 )
@@ -189,25 +197,23 @@ void loop()
             nextionSerial.write(0xff);
             delay(1);
             nextionSerial.print("z1.val=");
-            nextionSerial.print(CheckPression ( CapteurPression1, atm, Phase ));
+            nextionSerial.print( map( EtatPression, 0, 120, -1000, 3000 ) );
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
             delay(1);
-            if ( nex.listen() == Arret ) { message = Arret; }
           }
           else 
           {
             EtatDeLaPression ( map( EtatPression, 0, 120, -1000, 3000 ), CheckPression ( CapteurPression1, atm, Phase ) );
-            if ( nex.listen() == Arret ) { message = Arret; }
           }
           EncodeurPressionLast = EtatEncodeur;
-          if ( nex.listen() == Arret ) { message = Arret; }
         }
         digitalWrite(Pompe, LOW);
-        //digitalWrite(Electrovanne1, LOW);
-        //digitalWrite(Electrovanne2, LOW);
+        digitalWrite(Electrovanne1, LOW);
+        digitalWrite(Electrovanne2, LOW);
       }
+      EventChoix = false;
     }
     else { }
   }
@@ -220,37 +226,47 @@ void loop()
     // ------------------- Partie 1/4 ------------------- 
     digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Fermé Led verte Pression
     digitalWrite(Electrovanne2, HIGH); // Electrovanne 2 Ouverte Led bleu Depression
-    message = MiseEnPression ( Pression_1, Cycle_1, 7, CapteurPression1, 0, Cycle_1, atm, Phase ); // -800
+    MiseEnPression ( Pression_1, Cycle_1, 7, CapteurPression1, 0, Cycle_1, atm, Phase ); // -800
 
     // ------------------- Partie 2/4 ------------------- 
     digitalWrite(Electrovanne1, HIGH); // Electrovanne 1 Ouverte Led verte Pression
     digitalWrite(Electrovanne2, LOW); // Electrovanne 2 Fermé Led bleu Depression
-    if ( message != Arret ) { message = MiseEnPression ( Pression_2, Cycle_2, 105, CapteurPression1, Cycle_1, Cycle_1 + Cycle_2, atm, Phase); } // 2500
+    MiseEnPression ( Pression_2, Cycle_2, 105, CapteurPression1, Cycle_1, Cycle_1 + Cycle_2, atm, Phase); // 2500
 
     // ------------------- Partie 3/4 ------------------- 
     digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Fermé Led verte Pression
     digitalWrite(Electrovanne2, HIGH); // Electrovanne 2 Ouverte Led bleu Depression
-    if ( message != Arret ) { message = MiseEnPression ( Pression_3, Cycle_3, 7, CapteurPression1, Cycle_1 + Cycle_2, Cycle_1 + Cycle_2 + Cycle_3, atm, Phase ); } // -800
+    MiseEnPression ( Pression_3, Cycle_3, 7, CapteurPression1, Cycle_1 + Cycle_2, Cycle_1 + Cycle_2 + Cycle_3, atm, Phase );  // -800
 
-    
     // ------------------- Partie 4/4 ------------------- 
     digitalWrite(Electrovanne1, HIGH); // Electrovanne 1 Ouverte Led verte Pression
     digitalWrite(Electrovanne2, LOW); // Electrovanne 2 Fermé Led bleu Depression
-    if ( message != Arret ) { message = MiseEnPression ( Pression_4, Cycle_4, 120, CapteurPression1, Cycle_1 + Cycle_2 + Cycle_3, CycleTotal, atm, Phase ); } // 3000
+    MiseEnPression ( Pression_4, Cycle_4, 120, CapteurPression1, Cycle_1 + Cycle_2 + Cycle_3, CycleTotal, atm, Phase ); // 3000
 
     digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Led verte Pression
     digitalWrite(Electrovanne2, LOW); // Electrovanne 2 Led bleu Depression
     digitalWrite(Pompe, LOW);
+    nextionSerial.print("j0.val=");
+    nextionSerial.print(100);
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
+    delay(1);
+    nextionSerial.print("j1.val=");
+    nextionSerial.print(100);
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
     EventChoix = false;
   }
   else { }
 }
 
 
-String MiseEnPression ( int Pression, int Cycle, int ForcerPression, int CapteurPression1, int Etape, int EtapeSuivante, float atm, bool Phase )
+bool MiseEnPression ( int Pression, int Cycle, int ForcerPression, int CapteurPression1, int Etape, int EtapeSuivante, float atm, bool Phase )
 { 
-    String message = nex.listen();
-    String Arret = "65 2 7 1 ffff ffff ffff"; // Page 2  - Arrêt réparation "b2"
+    int ArretUrgence = 12;
+    bool Urgence = false;
     nextionSerial.print("z0.val=");
     nextionSerial.print(map(CheckPression ( CapteurPression1, atm, Phase ), -1000, 3000, 0, 120));
     nextionSerial.write(0xff);
@@ -260,17 +276,9 @@ String MiseEnPression ( int Pression, int Cycle, int ForcerPression, int Capteur
     
     // Tant que la pression n'est pas atteinte
     bool VerifPression = 0;
-    while ( ( VerifPression != 1 ) && ( message != Arret ) )
+    while ( ( VerifPression != 1 ) && ( Urgence != true ) )
     {
-      message = nex.listen();
-      if ( message == Arret ) 
-      { 
-        message = Arret; VerifPression = 1; return Arret; 
-      }
-      else 
-      {
       VerifPression = EtatDeLaPression ( Pression, CheckPression ( CapteurPression1, atm, Phase ) );
-      //*
       nextionSerial.print("z0.val=");
       nextionSerial.print(map( CheckPression ( CapteurPression1, atm, Phase ), -1000, 3000, 0, 120 ) );
       nextionSerial.write(0xff);
@@ -282,16 +290,21 @@ String MiseEnPression ( int Pression, int Cycle, int ForcerPression, int Capteur
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
-      //*/
+      delay(1);
+      if ( fonctionArretUrgence ( ArretUrgence ) == true) 
+      {
+        // On continue
+      } 
+      else 
+      {
+        Urgence = true;
       }
-      delay(100);
-
     }
 
     // Effet visuel de la progression sur XX secondes
     unsigned long currentMillis = millis();
     unsigned long previousMillis = millis();
-    while ( ( (currentMillis - previousMillis) < (Cycle * 1000) ) && ( message != Arret ) )
+    while ( ( (currentMillis - previousMillis) < (Cycle * 1000) ) && ( Urgence != true )  )
     {
 
         // Ajouter condition pour envoyer la pression en cas de manque
@@ -314,12 +327,33 @@ String MiseEnPression ( int Pression, int Cycle, int ForcerPression, int Capteur
         nextionSerial.write(0xff);
         delay(1);
         EtatDeLaPression ( Pression, CheckPression ( CapteurPression1, atm, Phase ) );
-        message = nex.listen();
-        if ( message == Arret ) { message = Arret; return Arret; }
+        if ( fonctionArretUrgence ( ArretUrgence ) == true) 
+        {
+          // On continue
+        } 
+        else 
+        {
+          Urgence = true;
+        }
     }
     digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Led verte Pression
     digitalWrite(Electrovanne2, LOW); // Electrovanne 2 Led bleu Depression
     digitalWrite(Pompe, LOW);
+}
+
+bool fonctionArretUrgence ( int ArretUrgence )
+{
+  int ArretUrgenceState = digitalRead(ArretUrgence);
+  if (ArretUrgenceState == HIGH) 
+  {
+    // On continue
+    return true;
+  } 
+  else 
+  {
+    // On arrete tout
+    return false;
+  }
 }
 
 void AvancementAzero ( void )
