@@ -27,7 +27,6 @@ String ReparationRapide = "65 1 1 1 ffff ffff ffff"; // Page 1 - Réparation rap
 String ReparationA = "65 1 2 1 ffff ffff ffff"; // Page 1 - Réparation A "b1"
 String ReparationB = "65 1 3 1 ffff ffff ffff"; // Page 1 - Réparation B "b2"
 String ReparationManu = "65 1 4 1 ffff ffff ffff"; // Page 1 - Réparation C "b3"
-
 String Depart = "65 2 6 1 ffff ffff ffff"; // Page 2 - Départ réparation "b1"
 String Arret = "65 2 7 1 ffff ffff ffff"; // Page 2  - Arrêt réparation "b2"
 */
@@ -178,6 +177,9 @@ void loop()
       // Dans cette réparation c est l encodeur qui gère la pression
       // En tournant l encodeur la jauge et la valeur des millibars changent
       // La pression s ajuste pour suivre la jauge
+      int timer = 0;
+      int secondes = 0;
+      int minutes = 0;
       while ( EventChoix != true )
       {
         message = nex.listen(); // Attente de validation du départ de la réparation manu
@@ -185,6 +187,34 @@ void loop()
         // C est parti on répare
         while ( message == departManu )
         {
+            // Timer pour mode manu
+            timer+=1;
+            delay(1);
+            // Mise à jour secondes
+            if ( timer > 1000 ) 
+            { 
+              timer = 0; 
+              secondes+=1;
+              nextionSerial.print("n2.val=");
+              nextionSerial.print( secondes );
+              nextionSerial.write(0xff);
+              nextionSerial.write(0xff);
+              nextionSerial.write(0xff);
+              delay(1);
+            } else {}
+            // Mise à jour minutes
+            if ( secondes > 59 ) 
+            { 
+              secondes = 0; 
+              minutes+=1;
+              nextionSerial.print("n1.val=");
+              nextionSerial.print( minutes );
+              nextionSerial.write(0xff);
+              nextionSerial.write(0xff);
+              nextionSerial.write(0xff);
+              delay(1);
+            } else {}
+            
           // L arrêt d urgence au cas ( boutton poussoir )
           if ( DemandeArretUrgence ( ArretUrgence ) == true) 
           {
@@ -223,13 +253,14 @@ void loop()
             nextionSerial.write(0xff);
             delay(1);
             // Mise à jour de la valeur de pression demandée par l'encodeur
-            nextionSerial.print("z1.val=");
+            nextionSerial.print("n0.val=");
             nextionSerial.print( map( EtatPression, 0, 216, -1000, 3000 ) );
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
             delay(1);
-          }
+
+           }
           else 
           {
             EquilibragePression ( map( EtatPression, 0, 216, -1000, 3000 ), RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
