@@ -81,10 +81,7 @@ int millibar = 0;
 const int ArretUrgence = 12;
 int ArretUrgenceState = 0;
 
-int AvancementEtape = 0;
-int AvancementTotal = 0;
-
-long Temps = 0;
+unsigned long Temps = 0;
 int i = 0;
 
 void setup()
@@ -122,13 +119,13 @@ void loop()
     if ( message == ReparationRapide )
     {
       Pression_1 = -400;
-      Cycle_1 = 30;
+      Cycle_1 = 50;
       Pression_2 = 2500;
-      Cycle_2 = 30;
+      Cycle_2 = 25;
       Pression_3 = -400;
-      Cycle_3 = 30;
+      Cycle_3 = 50;
       Pression_4 = 3000;
-      Cycle_4 = 60;
+      Cycle_4 = 50;
       CycleTotal = Cycle_1 + Cycle_2 + Cycle_3 + Cycle_4;
       EventChoix = true;
       AvancementAzero(); // Met à 0 les barres d'avancement
@@ -150,7 +147,7 @@ void loop()
     else if ( message == ReparationB )
     {
       Pression_1 = -400;
-      Cycle_1 = 30;
+      Cycle_1 = 60;
       Pression_2 = 2500;
       Cycle_2 = 30;
       Pression_3 = -400;
@@ -164,7 +161,7 @@ void loop()
     else if ( message == ReparationManu )
     {
       AvancementAzero(); // Met à 0 les barres d'avancement
-      EtatPression = 35 - 1; // Affichage
+      EtatPression = 54; // Affichage
       nextionSerial.print("z0.val=");
       nextionSerial.print(EtatPression);
       nextionSerial.write(0xff);
@@ -373,24 +370,24 @@ bool MiseEnPression ( int Pression, int Cycle, int CapteurPression1, int Etape, 
     // On a atteint la pression voulue, on commence la temporisation, et on ajuste en cours de route au cas où
     unsigned long currentMillis = millis();
     unsigned long previousMillis = millis();
+    int EtapeTemporaire = 0;
+    int EtapeSuivanteTemporaire = 0;
     while ( ( (currentMillis - previousMillis) < (Cycle * 1000) ) && ( Urgence != true )  )
     {
         currentMillis = millis();
         // Visuel de l'étape en cours
-        AvancementEtape = map(currentMillis - previousMillis, 0, Cycle * 1000, 0, 100);
         nextionSerial.print("j0.val=");
-        nextionSerial.print(AvancementEtape);
+        nextionSerial.print(map((currentMillis - previousMillis)/1000, 0, Cycle, 0, 100));
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
         delay(1);
 
         // Visuel de l'étape total
-        int EtapeTemporaire = map(Etape, 0, CycleTotal, 0, 100);
-        int EtapeSuivanteTemporaire = map(EtapeSuivante, 0, CycleTotal, 0, 100);
-        AvancementTotal = map(currentMillis - previousMillis, 0, Cycle * 1000, EtapeTemporaire, EtapeSuivanteTemporaire );
+        EtapeTemporaire = map(Etape, 0, CycleTotal, 0, 100);
+        EtapeSuivanteTemporaire = map(EtapeSuivante, 0, CycleTotal, 0, 100);
         nextionSerial.print("j1.val=");
-        nextionSerial.print(AvancementTotal);
+        nextionSerial.print(map((currentMillis - previousMillis)/1000, 0, Cycle, EtapeTemporaire, EtapeSuivanteTemporaire ));
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
@@ -488,3 +485,4 @@ int RecuperationValeurCapteurPression ( const int CapteurPression1, float atm )
     return millibar;
     delay(1);
 }
+
