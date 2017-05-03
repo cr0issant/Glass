@@ -121,11 +121,11 @@ void loop()
     String message = nex.listen(); //check message nextion
     if ( message == ReparationRapide )
     {
-      Pression_1 = -800;
+      Pression_1 = -400;
       Cycle_1 = 30;
       Pression_2 = 2500;
       Cycle_2 = 30;
-      Pression_3 = -800;
+      Pression_3 = -400;
       Cycle_3 = 30;
       Pression_4 = 3000;
       Cycle_4 = 60;
@@ -135,11 +135,11 @@ void loop()
     }
     else if ( message == ReparationA )
     {
-      Pression_1 = -800;
+      Pression_1 = -400;
       Cycle_1 = 3;
       Pression_2 = 2500;
       Cycle_2 = 3;
-      Pression_3 = -800;
+      Pression_3 = -400;
       Cycle_3 = 3;
       Pression_4 = 3000;
       Cycle_4 = 6;
@@ -149,11 +149,11 @@ void loop()
     }
     else if ( message == ReparationB )
     {
-      Pression_1 = -800;
+      Pression_1 = -400;
       Cycle_1 = 30;
       Pression_2 = 2500;
       Cycle_2 = 30;
-      Pression_3 = -800;
+      Pression_3 = -400;
       Cycle_3 = 30;
       Pression_4 = 3000;
       Cycle_4 = 60;
