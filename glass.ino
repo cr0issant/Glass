@@ -328,7 +328,7 @@ Etapes :
 - On a atteint la pression voulue, on commence la temporisation, et on ajuste en cours de route au cas où
 Elle retourne aussi grace à un booléen l'état de la mise en pression
 */
-bool MiseEnPression ( int Pression, int Cycle, int CapteurPression1, int Etape, int EtapeSuivante, float atm )
+bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape, int EtapeSuivante, float atm )
 { 
     int ArretUrgence = 12;
     bool Urgence = false;
@@ -368,16 +368,17 @@ bool MiseEnPression ( int Pression, int Cycle, int CapteurPression1, int Etape, 
     }
 
     // On a atteint la pression voulue, on commence la temporisation, et on ajuste en cours de route au cas où
-    unsigned long currentMillis = millis();
     unsigned long previousMillis = millis();
+    unsigned long currentMillis = millis();
     int EtapeTemporaire = 0;
     int EtapeSuivanteTemporaire = 0;
-    while ( ( (currentMillis - previousMillis) < (Cycle * 1000) ) && ( Urgence != true )  )
+    Cycle = Cycle * 1000;
+    while ( ( (currentMillis - previousMillis) < Cycle ) && ( Urgence != true )  )
     {
         currentMillis = millis();
         // Visuel de l'étape en cours
         nextionSerial.print("j0.val=");
-        nextionSerial.print(map((currentMillis - previousMillis)/1000, 0, Cycle, 0, 100));
+        nextionSerial.print(map(currentMillis - previousMillis, 0, Cycle, 0, 100));
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
@@ -387,7 +388,7 @@ bool MiseEnPression ( int Pression, int Cycle, int CapteurPression1, int Etape, 
         EtapeTemporaire = map(Etape, 0, CycleTotal, 0, 100);
         EtapeSuivanteTemporaire = map(EtapeSuivante, 0, CycleTotal, 0, 100);
         nextionSerial.print("j1.val=");
-        nextionSerial.print(map((currentMillis - previousMillis)/1000, 0, Cycle, EtapeTemporaire, EtapeSuivanteTemporaire ));
+        nextionSerial.print(map(currentMillis - previousMillis, 0, Cycle, EtapeTemporaire, EtapeSuivanteTemporaire ));
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
