@@ -50,6 +50,9 @@ String depressionManu   = "65 2 8 0 ffff ffff ffff";
 String departUV         = "65 3 3 0 ffff ffff ffff";    
 String arretUV          = "65 3 4 0 ffff ffff ffff";    
 
+String flecheHaute      = "65 5 b 0 ffff ffff ffff";
+String flecheBasse      = "65 5 c 0 ffff ffff ffff";
+
 // Pression 0 bar = 35, -0.8 bar = 7, 3 bar = 120
 int Pression_1 = 0;
 int Cycle_1 = 0;
@@ -177,12 +180,16 @@ void loop()
       int timer = 0;
       int secondes = 0;
       int minutes = 0;
+      bool goManu = false;
       while ( EventChoix != true )
       {
         message = nex.listen(); // Attente de validation du départ de la réparation manu
-
+        if ( message == departManu )
+        {
+          goManu = true;
+        }
         // C est parti on répare
-        while ( message == departManu )
+        while ( goManu == true )
         {
             // Timer pour mode manu
             timer+=1;
@@ -213,56 +220,49 @@ void loop()
             } else {}
             
           // L arrêt d urgence au cas ( boutton poussoir )
-          if ( DemandeArretUrgence ( ArretUrgence ) == true) 
+          if ( message == arretManu ) 
           {
-             // On continue
+             EventChoix = true; goManu = false;
           } 
           else 
           {
-             message = arretManu; EventChoix = true;
+             // On continue
           }
 
-          EtatEncodeur = digitalRead(EncodeurPression); // Lecture de la position de l encodeur
-          // Condition pour jouer avec l'encodeur
-          if ((EncodeurPressionLast == LOW) && (EtatEncodeur == HIGH)) 
-          {
-            if (digitalRead(EncodeurDepression) == LOW) 
+          message = nex.listen();
+          // Condition pour jouer avec les fèches
+            if ( ( message == flecheBasse ) && ( EtatPression >= 0 ) )
             {
-              if ( EtatPression >= 0 ) // 0 est la position mini de la jauge nextion
-              {
-                EtatPression--;
-              }
-              else { }
+                EtatPression -= 5;
             }
-            else
+            else if ( ( message == flecheHaute ) && ( EtatPression <= 216 ) )
             {
-              if ( EtatPression <= 216 ) // 216 est la postion maxi de la jauge nextion
-              {
-                EtatPression++;
-              }
-              else { }
+                EtatPression += 5;
             }
-            // Mise à jour de la jauge de pression demandée par l'encodeur
-            nextionSerial.print("z0.val=");
-            nextionSerial.print(EtatPression);
-            nextionSerial.write(0xff);
-            nextionSerial.write(0xff);
-            nextionSerial.write(0xff);
-            delay(1);
-            // Mise à jour de la valeur de pression demandée par l'encodeur
-            nextionSerial.print("n0.val=");
-            nextionSerial.print( map( EtatPression, 0, 216, -1000, 3000 ) );
-            nextionSerial.write(0xff);
-            nextionSerial.write(0xff);
-            nextionSerial.write(0xff);
-            delay(1);
+            Temps +=1;
+            if ( Temps > 50 ) 
+            { 
+              Temps = 0;
+              // Mise à jour de la jauge de pression demandée par l'encodeur
+              nextionSerial.print("z0.val=");
+              nextionSerial.print(EtatPression);
+              nextionSerial.write(0xff);
+              nextionSerial.write(0xff);
+              nextionSerial.write(0xff);
+              delay(1);
+              // Mise à jour de la valeur de pression demandée par l'encodeur
+              nextionSerial.print("n0.val=");
+              nextionSerial.print( map( EtatPression, 0, 216, -1000, 3000 ) );
+              nextionSerial.write(0xff);
+              nextionSerial.write(0xff);
+              nextionSerial.write(0xff);
+              delay(1);
 
-           }
-          else 
-          {
-            EquilibragePression ( map( EtatPression, 0, 216, -1000, 3000 ), RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
-          }
-          EncodeurPressionLast = EtatEncodeur;
+              EquilibragePression ( map( EtatPression, 0, 216, -1000, 3000 ), RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
+            
+            }
+            else { }
+
         }
         // En quittant le programme on éteint tout
         digitalWrite(Pompe, LOW);
