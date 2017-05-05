@@ -205,8 +205,6 @@ void loop()
               nextionSerial.write(0xff);
               nextionSerial.write(0xff);
               delay(1);
-              EquilibragePression ( map( EtatPression, 0, 216, -1000, 3000 ), RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
-            
             } else {}
             // Mise à jour minutes
             if ( secondes > 59 ) 
@@ -259,11 +257,10 @@ void loop()
               nextionSerial.write(0xff);
               nextionSerial.write(0xff);
               delay(1);
-
-
             }
             else { }
-
+        EquilibragePression ( map( EtatPression, 0, 216, -1000, 3000 ), RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
+        delay(1);
         }
         // En quittant le programme on éteint tout
         digitalWrite(Pompe, LOW);
@@ -374,26 +371,45 @@ bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape,
     int EtapeTemporaire = 0;
     int EtapeSuivanteTemporaire = 0;
     Cycle = Cycle * 1000;
+    int Temps = 0;
     while ( ( (currentMillis - previousMillis) < Cycle ) && ( Urgence != true )  )
     {
         currentMillis = millis();
         // Visuel de l'étape en cours
-        nextionSerial.print("j0.val=");
-        nextionSerial.print(map(currentMillis - previousMillis, 0, Cycle, 0, 100));
-        nextionSerial.write(0xff);
-        nextionSerial.write(0xff);
-        nextionSerial.write(0xff);
-        delay(1);
-
-        // Visuel de l'étape total
-        EtapeTemporaire = map(Etape, 0, CycleTotal, 0, 100);
-        EtapeSuivanteTemporaire = map(EtapeSuivante, 0, CycleTotal, 0, 100);
-        nextionSerial.print("j1.val=");
-        nextionSerial.print(map(currentMillis - previousMillis, 0, Cycle, EtapeTemporaire, EtapeSuivanteTemporaire ));
-        nextionSerial.write(0xff);
-        nextionSerial.write(0xff);
-        nextionSerial.write(0xff);
-        delay(1);
+    
+        Temps +=1;
+        if ( Temps > 50 ) 
+        { 
+            Temps = 0;
+            nextionSerial.print("j0.val=");
+            nextionSerial.print(map(currentMillis - previousMillis, 0, Cycle, 0, 100));
+            nextionSerial.write(0xff);
+            nextionSerial.write(0xff);
+            nextionSerial.write(0xff);
+            delay(1);
+            // Visuel de l'étape total
+            EtapeTemporaire = map(Etape, 0, CycleTotal, 0, 100);
+            EtapeSuivanteTemporaire = map(EtapeSuivante, 0, CycleTotal, 0, 100);
+            nextionSerial.print("j1.val=");
+            nextionSerial.print(map(currentMillis - previousMillis, 0, Cycle, EtapeTemporaire, EtapeSuivanteTemporaire ));
+            nextionSerial.write(0xff);
+            nextionSerial.write(0xff);
+            nextionSerial.write(0xff);
+            delay(1);
+            nextionSerial.print("z0.val=");
+            nextionSerial.print(map( RecuperationValeurCapteurPression ( CapteurPression1, atm ), -1000, 3000, 0, 216 ) );
+            nextionSerial.write(0xff);
+            nextionSerial.write(0xff);
+            nextionSerial.write(0xff);
+            delay(1);
+            nextionSerial.print("n0.val=");
+            nextionSerial.print( RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
+            nextionSerial.write(0xff);
+            nextionSerial.write(0xff);
+            nextionSerial.write(0xff);
+            delay(1);
+        }
+        else {}
         // Equilibrage de secours en cas de manque
         EquilibragePression ( Pression, RecuperationValeurCapteurPression ( CapteurPression1, atm ) ); 
         // Arrêt d'urgence si demandé
@@ -487,4 +503,3 @@ int RecuperationValeurCapteurPression ( const int CapteurPression1, float atm )
     return millibar;
     delay(1);
 }
-
