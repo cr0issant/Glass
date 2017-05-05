@@ -252,7 +252,7 @@ void loop()
               delay(1);
               // Mise à jour de la valeur de pression demandée par l'encodeur
               nextionSerial.print("n0.val=");
-              nextionSerial.print( map( EtatPression, 0, 216, -1000, 3000 ) );
+              nextionSerial.print( RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
               nextionSerial.write(0xff);
               nextionSerial.write(0xff);
               nextionSerial.write(0xff);
