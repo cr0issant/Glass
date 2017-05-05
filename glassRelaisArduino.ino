@@ -377,10 +377,6 @@ bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape,
         currentMillis = millis();
         // Visuel de l'étape en cours
     
-        Temps +=1;
-        if ( Temps > 50 ) 
-        { 
-            Temps = 0;
             nextionSerial.print("j0.val=");
             nextionSerial.print(map(currentMillis - previousMillis, 0, Cycle, 0, 100));
             nextionSerial.write(0xff);
@@ -408,8 +404,7 @@ bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape,
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
             delay(1);
-        }
-        else {}
+
         // Equilibrage de secours en cas de manque
         EquilibragePression ( Pression, RecuperationValeurCapteurPression ( CapteurPression1, atm ) ); 
         // Arrêt d'urgence si demandé
