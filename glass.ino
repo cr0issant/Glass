@@ -205,6 +205,8 @@ void loop()
               nextionSerial.write(0xff);
               nextionSerial.write(0xff);
               delay(1);
+              EquilibragePression ( map( EtatPression, 0, 216, -1000, 3000 ), RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
+            
             } else {}
             // Mise à jour minutes
             if ( secondes > 59 ) 
@@ -258,8 +260,7 @@ void loop()
               nextionSerial.write(0xff);
               delay(1);
 
-              EquilibragePression ( map( EtatPression, 0, 216, -1000, 3000 ), RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
-            
+
             }
             else { }
 
