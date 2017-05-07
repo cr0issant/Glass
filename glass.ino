@@ -87,6 +87,12 @@ int ArretUrgenceState = 0;
 unsigned long Temps = 0;
 int i = 0;
 bool Urgence = false;
+int timerGlobal = 0;
+int secondesGlobale = 0;
+int minutesGlobale = 0;
+int timerInterval = 0;
+int secondesIntervalle = 0;
+int minutesIntervalle = 0;
 
 void setup()
 {
@@ -118,6 +124,12 @@ void setup()
 void loop()
 {
   Urgence = false;
+  timerGlobal = 0;
+  secondesGlobale = 0;
+  minutesGlobale = 0;
+  timerInterval = 0;
+  secondesIntervalle = 0;
+  minutesIntervalle = 0;
   while ( EventChoix != true )
   {
     String message = nex.listen(); //check message nextion
@@ -174,14 +186,11 @@ void loop()
       nextionSerial.write(0xff);
       delay(1);
         
-
       // Boucle du programme de réparation manuel
       // Dans cette réparation c est l encodeur qui gère la pression
       // En tournant l encodeur la jauge et la valeur des millibars changent
       // La pression s ajuste pour suivre la jauge
-      int timer = 0;
-      int secondes = 0;
-      int minutes = 0;
+
       bool goManu = false;
       while ( EventChoix != true )
       {
@@ -193,33 +202,8 @@ void loop()
         // C est parti on répare
         while ( goManu == true )
         {
-            // Timer pour mode manu
-            timer+=1;
-            delay(1);
-            // Mise à jour secondes
-            if ( timer > 1000 ) 
-            { 
-              timer = 0; 
-              secondes+=1;
-              nextionSerial.print("n2.val=");
-              nextionSerial.print( secondes );
-              nextionSerial.write(0xff);
-              nextionSerial.write(0xff);
-              nextionSerial.write(0xff);
-              delay(1);
-            } else {}
-            // Mise à jour minutes
-            if ( secondes > 59 ) 
-            { 
-              secondes = 0; 
-              minutes+=1;
-              nextionSerial.print("n1.val=");
-              nextionSerial.print( minutes );
-              nextionSerial.write(0xff);
-              nextionSerial.write(0xff);
-              nextionSerial.write(0xff);
-              delay(1);
-            } else {}
+            timerGlobal+=1;
+            AffichageTimerGlobal ( "n1.val=", "n2.val=" );
             
             message = nex.listen();
             // L arrêt d urgence au cas
@@ -287,16 +271,22 @@ void loop()
     MiseEnPression ( Pression_1, Cycle_1, CapteurPression1, 0, Cycle_1, atm ); // -800
 
     // ------------------- Partie 2/4 ------------------- 
+    secondesIntervalle = 0;
+    minutesIntervalle = 0;
     digitalWrite(Electrovanne1, HIGH); // Electrovanne 1 Ouverte Led verte Pression
     digitalWrite(Electrovanne2, LOW); // Electrovanne 2 Fermé Led bleu Depression
     MiseEnPression ( Pression_2, Cycle_2, CapteurPression1, Cycle_1, Cycle_1 + Cycle_2, atm ); // 2500
 
     // ------------------- Partie 3/4 ------------------- 
+    secondesIntervalle = 0;
+    minutesIntervalle = 0;
     digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Fermé Led verte Pression
     digitalWrite(Electrovanne2, HIGH); // Electrovanne 2 Ouverte Led bleu Depression
     MiseEnPression ( Pression_3, Cycle_3, CapteurPression1, Cycle_1 + Cycle_2, Cycle_1 + Cycle_2 + Cycle_3, atm );  // -800
 
     // ------------------- Partie 4/4 ------------------- 
+    secondesIntervalle = 0;
+    minutesIntervalle = 0;
     digitalWrite(Electrovanne1, HIGH); // Electrovanne 1 Ouverte Led verte Pression
     digitalWrite(Electrovanne2, LOW); // Electrovanne 2 Fermé Led bleu Depression
     MiseEnPression ( Pression_4, Cycle_4, CapteurPression1, Cycle_1 + Cycle_2 + Cycle_3, CycleTotal, atm ); // 3000
@@ -344,6 +334,10 @@ bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape,
     bool VerifPression = 0;
     while ( ( VerifPression != 1 ) && ( Urgence != true ) )
     {
+      timerGlobal+=1;
+      timerInterval+=1;
+      AffichageTimerGlobal ( "n5.val=", "n6.val=" );
+      AffichageTimerInterval ( "n3.val=", "n4.val=" );
       Temps +=1;
       if ( Temps > 50 ) 
       { 
@@ -381,22 +375,24 @@ bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape,
     int EtapeTemporaire = 0;
     int EtapeSuivanteTemporaire = 0;
     Cycle = Cycle * 1000;
-    while ( ( (currentMillis - previousMillis) < Cycle ) && ( Urgence != true )  )
+    while ( ( (currentMillis - previousMillis) <= Cycle ) && ( Urgence != true )  )
     {
         currentMillis = millis();
+        timerGlobal+=1;
+        timerInterval+=1;
         // Visuel de l'étape en cours
-    
         Temps +=1;
-        if ( Temps > 50 ) 
+        if ( Temps > 100 ) 
         { 
+            AffichageTimerInterval ( "n3.val=", "n4.val=" ); AffichageTimerCycle ( "n1.val=", "n2.val=", (currentMillis - previousMillis) / 1000 );
+            AffichageTimerGlobal ( "n5.val=", "n6.val=" ); AffichageTimerCycle ( "n7.val=", "n8.val=", map(currentMillis - previousMillis, 0, Cycle, map(Etape, 0, CycleTotal, 0, CycleTotal), map(EtapeSuivante, 0, CycleTotal, 0, CycleTotal) ) );
             Temps = 0;
             nextionSerial.print("j0.val=");
             nextionSerial.print(map(currentMillis - previousMillis, 0, Cycle, 0, 100));
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
-            delay(1);
-            // Visuel de l'étape total
+
             EtapeTemporaire = map(Etape, 0, CycleTotal, 0, 100);
             EtapeSuivanteTemporaire = map(EtapeSuivante, 0, CycleTotal, 0, 100);
             nextionSerial.print("j1.val=");
@@ -404,19 +400,19 @@ bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape,
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
-            delay(1);
+
             nextionSerial.print("z0.val=");
             nextionSerial.print(map( RecuperationValeurCapteurPression ( CapteurPression1, atm ), -1000, 3000, 0, 216 ) );
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
-            delay(1);
+
             nextionSerial.print("n0.val=");
             nextionSerial.print( RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
             nextionSerial.write(0xff);
-            delay(1);
+            
         }
         else {}
         // Equilibrage de secours en cas de manque
@@ -433,6 +429,20 @@ bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape,
           // On continue
         }
     }
+    nextionSerial.print("j0.val=");
+    nextionSerial.print(map(currentMillis - previousMillis, 0, Cycle, 0, 100));
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
+
+    EtapeTemporaire = map(Etape, 0, CycleTotal, 0, 100);
+    EtapeSuivanteTemporaire = map(EtapeSuivante, 0, CycleTotal, 0, 100);
+    nextionSerial.print("j1.val=");
+    nextionSerial.print(map(currentMillis - previousMillis, 0, Cycle, EtapeTemporaire, EtapeSuivanteTemporaire ));
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
+
     digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Led verte Pression
     digitalWrite(Electrovanne2, LOW); // Electrovanne 2 Led bleu Depression
     digitalWrite(Pompe, LOW);
@@ -513,4 +523,91 @@ int RecuperationValeurCapteurPression ( const int CapteurPression1, float atm )
     int millibar = (int) ( bar * 1000 );
     return millibar;
     delay(1);
+}
+
+// Gère l'affichage global des temps
+void AffichageTimerGlobal ( String minutesNextion, String secondesNextion ) 
+{
+  
+  
+  // Mise à jour minutes
+  if ( secondesGlobale > 59 ) 
+  { 
+    secondesGlobale = 0; 
+    minutesGlobale+=1;
+    nextionSerial.print(minutesNextion);
+    nextionSerial.print( minutesGlobale );
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
+   }
+   else {}
+  // Mise à jour secondes
+  if ( timerGlobal > 1000 ) 
+  { 
+    timerGlobal = 0; 
+    secondesGlobale+=1;
+    nextionSerial.print(secondesNextion);
+    nextionSerial.print( secondesGlobale );
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
+  }
+  else {}
+}
+
+// Gère l'affichage interval des temps
+void AffichageTimerInterval ( String minutesNextion, String secondesNextion ) 
+{
+
+
+  // Mise à jour minutes
+  if ( secondesIntervalle > 59 ) 
+  { 
+    secondesIntervalle = 0; 
+    minutesIntervalle+=1;
+    nextionSerial.print(minutesNextion);
+    nextionSerial.print( minutesIntervalle );
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
+   }
+   else {}
+   // Mise à jour secondes
+   if ( timerInterval > 1000 ) 
+   { 
+     timerInterval = 0; 
+     secondesIntervalle+=1;
+     nextionSerial.print(secondesNextion);
+     nextionSerial.print( secondesIntervalle );
+     nextionSerial.write(0xff);
+     nextionSerial.write(0xff);
+     nextionSerial.write(0xff);
+   }
+   else {}
+}
+
+// Gère l'affichage du timer du cycle
+void AffichageTimerCycle ( String minutesNextion, String secondesNextion, long cycle ) 
+{
+    long secondes = (cycle % 60);
+    long minutes = cycle / 60;
+    nextionSerial.print(secondesNextion);
+    if ( secondes > 59 )
+    {
+      nextionSerial.print( 0 );
+    }
+    else
+    {
+      nextionSerial.print( secondes );
+    }
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
+
+    nextionSerial.print(minutesNextion);
+    nextionSerial.print( minutes );
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
+    nextionSerial.write(0xff);
 }
