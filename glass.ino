@@ -40,7 +40,7 @@ String ultraViolet      = "65 1 6 0 ffff ffff ffff";
 String info             = "65 1 7 0 ffff ffff ffff";    
 
 String departAuto       = "65 2 2 0 ffff ffff ffff";     
-//String arretAuto        = "65 2 3 0 ffff ffff ffff";    
+String arretAuto        = "65 2 3 0 ffff ffff ffff";    
 String depressionAuto   = "65 2 9 0 ffff ffff ffff";   
 
 String departManu       = "65 5 2 0 ffff ffff ffff";   
@@ -86,6 +86,7 @@ int ArretUrgenceState = 0;
 
 unsigned long Temps = 0;
 int i = 0;
+bool Urgence = false;
 
 void setup()
 {
@@ -116,6 +117,7 @@ void setup()
 
 void loop()
 {
+  Urgence = false;
   while ( EventChoix != true )
   {
     String message = nex.listen(); //check message nextion
@@ -219,18 +221,18 @@ void loop()
               delay(1);
             } else {}
             
-          // L arrêt d urgence au cas ( boutton poussoir )
-          if ( message == arretManu ) 
-          {
-             EventChoix = true; goManu = false;
-          } 
-          else 
-          {
-             // On continue
-          }
+            message = nex.listen();
+            // L arrêt d urgence au cas
+            if ( message == arretManu ) 
+            {
+              EventChoix = true; goManu = false;
+            } 
+            else 
+            {
+               // On continue
+            }
 
-          message = nex.listen();
-          // Condition pour jouer avec les fèches
+           // Condition pour jouer avec les fèches
             if ( ( message == flecheBasse ) && ( EtatPression >= 0 ) )
             {
                 EtatPression -= 5;
@@ -328,8 +330,8 @@ Elle retourne aussi grace à un booléen l'état de la mise en pression
 */
 bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape, int EtapeSuivante, float atm )
 { 
-    int ArretUrgence = 12;
-    bool Urgence = false;
+    int Temps = 0;
+    String message = nex.listen();
     // On récupère la valeur du capteur de pression
     nextionSerial.print("z0.val=");
     nextionSerial.print(map(RecuperationValeurCapteurPression ( CapteurPression1, atm ), -1000, 3000, 0, 216));
@@ -342,26 +344,34 @@ bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape,
     bool VerifPression = 0;
     while ( ( VerifPression != 1 ) && ( Urgence != true ) )
     {
-      VerifPression = EquilibragePression ( Pression, RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
-      nextionSerial.print("z0.val=");
-      nextionSerial.print(map( RecuperationValeurCapteurPression ( CapteurPression1, atm ), -1000, 3000, 0, 216 ) );
-      nextionSerial.write(0xff);
-      nextionSerial.write(0xff);
-      nextionSerial.write(0xff);
-      delay(1);
-      nextionSerial.print("n0.val=");
-      nextionSerial.print( RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
-      nextionSerial.write(0xff);
-      nextionSerial.write(0xff);
-      nextionSerial.write(0xff);
-      delay(1);
-      if ( DemandeArretUrgence ( ArretUrgence ) == true) 
+      Temps +=1;
+      if ( Temps > 50 ) 
+      { 
+        Temps = 0;
+        VerifPression = EquilibragePression ( Pression, RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
+        nextionSerial.print("z0.val=");
+        nextionSerial.print(map( RecuperationValeurCapteurPression ( CapteurPression1, atm ), -1000, 3000, 0, 216 ) );
+        nextionSerial.write(0xff);
+        nextionSerial.write(0xff);
+        nextionSerial.write(0xff);
+        delay(1);
+        nextionSerial.print("n0.val=");
+        nextionSerial.print( RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
+        nextionSerial.write(0xff);
+        nextionSerial.write(0xff);
+        nextionSerial.write(0xff);
+        delay(1);
+      }
+      else {}
+      message = nex.listen();
+      // L arrêt d urgence au cas
+      if ( message == arretAuto ) 
       {
-        // On continue
+        Urgence = true;
       } 
       else 
       {
-        Urgence = true;
+         // On continue
       }
     }
 
@@ -371,7 +381,6 @@ bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape,
     int EtapeTemporaire = 0;
     int EtapeSuivanteTemporaire = 0;
     Cycle = Cycle * 1000;
-    int Temps = 0;
     while ( ( (currentMillis - previousMillis) < Cycle ) && ( Urgence != true )  )
     {
         currentMillis = millis();
@@ -413,13 +422,15 @@ bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape,
         // Equilibrage de secours en cas de manque
         EquilibragePression ( Pression, RecuperationValeurCapteurPression ( CapteurPression1, atm ) ); 
         // Arrêt d'urgence si demandé
-        if ( DemandeArretUrgence ( ArretUrgence ) == true) 
+        message = nex.listen();
+        // L arrêt d urgence au cas
+        if ( message == arretAuto ) 
         {
-          // On continue
+          Urgence = true;
         } 
         else 
         {
-          Urgence = true;
+          // On continue
         }
     }
     digitalWrite(Electrovanne1, LOW); // Electrovanne 1 Led verte Pression
