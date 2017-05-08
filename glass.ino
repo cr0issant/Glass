@@ -62,7 +62,7 @@ int Pression_3 = 0;
 int Cycle_3 = 0;
 int Pression_4 = 0;
 int Cycle_4 = 0;
-int CycleTotal = 0;
+long CycleTotal = 0;
 
 bool EventChoix = false; // Booléen pour contrôle si le choix de réparation est fait
 
@@ -87,12 +87,11 @@ int ArretUrgenceState = 0;
 unsigned long Temps = 0;
 int i = 0;
 bool Urgence = false;
-int timerGlobal = 0;
-int secondesGlobal = 0;
-int minutesGlobal = 0;
-int timerInterval = 0;
-int secondesInterval = 0;
-int minutesInterval = 0;
+long secondesGlobal = 0;
+long minutesGlobal = 0;
+long secondesInterval = 0;
+long minutesInterval = 0;
+unsigned long currentMillis = millis();
 unsigned long previousMillis = millis();
 
 void setup()
@@ -125,10 +124,8 @@ void setup()
 void loop()
 {
   Urgence = false;
-  timerGlobal = 0;
   secondesGlobal = 0;
   minutesGlobal = 0;
-  timerInterval = 0;
   secondesInterval = 0;
   minutesInterval = 0;
   while ( EventChoix != true )
@@ -151,13 +148,13 @@ void loop()
     else if ( message == ReparationA )
     {
       Pression_1 = -400;
-      Cycle_1 = 3;
+      Cycle_1 = 20;
       Pression_2 = 2500;
-      Cycle_2 = 3;
+      Cycle_2 = 30;
       Pression_3 = -400;
-      Cycle_3 = 3;
+      Cycle_3 = 10;
       Pression_4 = 3000;
-      Cycle_4 = 6;
+      Cycle_4 = 20;
       CycleTotal = Cycle_1 + Cycle_2 + Cycle_3 + Cycle_4;
       EventChoix = true;
       AvancementAzero(); // Met à 0 les barres d'avancement
@@ -203,9 +200,12 @@ void loop()
         // C est parti on répare
         while ( goManu == true )
         {
-            timerGlobal+=1;
-            AffichageTimerGlobal ( "n1.val=", "n2.val=" );
-            
+            currentMillis = millis();
+            if ( (currentMillis - previousMillis) >= 1000 )
+            {
+               previousMillis = currentMillis;
+               secondesGlobal+=1;
+            }
             message = nex.listen();
             // L arrêt d urgence au cas
             if ( message == arretManu ) 
@@ -227,7 +227,7 @@ void loop()
                 EtatPression += 5;
             }
             Temps +=1;
-            if ( Temps > 50 ) 
+            if ( Temps > 200 ) 
             { 
               Temps = 0;
               // Mise à jour de la jauge de pression demandée par l'encodeur
@@ -236,18 +236,17 @@ void loop()
               nextionSerial.write(0xff);
               nextionSerial.write(0xff);
               nextionSerial.write(0xff);
-              delay(1);
+
               // Mise à jour de la valeur de pression demandée par l'encodeur
               nextionSerial.print("n0.val=");
               nextionSerial.print( RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
               nextionSerial.write(0xff);
               nextionSerial.write(0xff);
               nextionSerial.write(0xff);
-              delay(1);
+
+              AffichageTimerGlobal ( "n1.val=", "n2.val=" );
             }
-            else { }
-        EquilibragePression ( map( EtatPression, 0, 216, -1000, 3000 ), RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
-        delay(1);
+            EquilibragePression ( map( EtatPression, 0, 216, -1000, 3000 ), RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
         }
         // En quittant le programme on éteint tout
         digitalWrite(Pompe, LOW);
@@ -319,7 +318,7 @@ Etapes :
 - On a atteint la pression voulue, on commence la temporisation, et on ajuste en cours de route au cas où
 Elle retourne aussi grace à un booléen l'état de la mise en pression
 */
-bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape, int EtapeSuivante, float atm )
+bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, long Etape, long EtapeSuivante, float atm )
 { 
     int Temps = 0;
     int EtapeTemporaire = 0;
@@ -340,7 +339,6 @@ bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape,
     nextionSerial.write(0xff);
     AffichageTimerInterval ( "n3.val=", "n4.val=" );
     AffichageTimerInterval ( "n1.val=", "n2.val=" );
-    AffichageTimerInterval ( "n7.val=", "n8.val=" );
     
     // On attend que la pression soit atteint avant de lancer la temporisation
     bool VerifPression = 0;
@@ -357,6 +355,7 @@ bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape,
       }
 
       Temps +=1;
+      delay(1);
       if ( Temps > 50 ) 
       { 
         Temps = 0;
@@ -368,13 +367,12 @@ bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape,
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
-        delay(1);
+
         nextionSerial.print("n0.val=");
         nextionSerial.print( RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
         nextionSerial.write(0xff);
-        delay(1);
       }
       message = nex.listen();
       // L arrêt d urgence au cas
@@ -396,15 +394,16 @@ bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape,
     {
         // Visuel de l'étape en cours
         Temps +=1;
-        if ( Temps > 20 ) 
+        delay(1);
+        if ( Temps > 50 ) 
         { 
           Temps = 0;
           //Affichage des Timers du cycle interval ( intermédiaire )
           AffichageTimerCycle ( "n3.val=", "n4.val=", secondesTempo + secondesInterval ); 
-          AffichageTimerCycle ( "n1.val=", "n2.val=", secondesInterval );
+          AffichageTimerCycle ( "n1.val=", "n2.val=", secondesInterval + 1 );
           //Affichage des Timers du cycle complet
           AffichageTimerGlobal ( "n5.val=", "n6.val=" ); 
-          AffichageTimerCycle ( "n7.val=", "n8.val=", Etape + secondesInterval );
+          AffichageTimerCycle ( "n7.val=", "n8.val=", Etape + secondesInterval + 1 );
 
           nextionSerial.print("j0.val=");
           nextionSerial.print(map(secondesInterval * 1000 + (currentMillis - previousMillis), 0, Cycle * 1000, 0, 100));
@@ -431,7 +430,6 @@ bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, int Etape,
           nextionSerial.write(0xff);
           nextionSerial.write(0xff);
           nextionSerial.write(0xff);
-            
         }
 
         // Equilibrage de secours en cas de manque
