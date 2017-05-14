@@ -220,11 +220,11 @@ void loop()
            // Condition pour jouer avec les fèches
             if ( ( message == flecheBasse ) && ( EtatPression >= 0 ) )
             {
-                EtatPression -= 5;
+                EtatPression -= 27;
             }
             else if ( ( message == flecheHaute ) && ( EtatPression <= 216 ) )
             {
-                EtatPression += 5;
+                EtatPression += 27;
             }
             Temps +=1;
             if ( Temps > 200 ) 
@@ -521,6 +521,7 @@ bool EquilibragePression ( int PressionAtrouver, int ValeurCapteurPression )
       digitalWrite(Pompe, HIGH);
       digitalWrite(Electrovanne1, HIGH);
       digitalWrite(Electrovanne2, LOW);
+      /*
       nextionSerial.print("t4.txt=\"POMPE : ON\"");
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
@@ -530,6 +531,7 @@ bool EquilibragePression ( int PressionAtrouver, int ValeurCapteurPression )
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
+      */
       return 0;
     }
     else if ( ValeurCapteurPression >= PressionAtrouver + Tolerance  )
@@ -537,6 +539,7 @@ bool EquilibragePression ( int PressionAtrouver, int ValeurCapteurPression )
       digitalWrite(Pompe, HIGH);
       digitalWrite(Electrovanne1, LOW);
       digitalWrite(Electrovanne2, HIGH);
+      /*
       nextionSerial.print("t4.txt=\"POMPE : ON\"");
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
@@ -546,16 +549,19 @@ bool EquilibragePression ( int PressionAtrouver, int ValeurCapteurPression )
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
+      */
       return 0;
     }
     // On stoppe si on a atteint notre pression recherché avec +ou- 50 de tolérance
     else if ( ( PressionAtrouver - Tolerance < ValeurCapteurPression < PressionAtrouver + Tolerance )  )
     {
       digitalWrite(Pompe, LOW);
+      /*
       nextionSerial.print("t4.txt=\"POMPE : OFF\"");
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
       nextionSerial.write(0xff);
+      */
       return 1;
     }
     delay(1);
@@ -564,6 +570,7 @@ bool EquilibragePression ( int PressionAtrouver, int ValeurCapteurPression )
 // Cela récupére la valeur du capteur de pression
 int RecuperationValeurCapteurPression ( const int CapteurPression1, float atm )
 {
+  
     int pressureSensorRaw = analogRead(CapteurPression1); //Reads the sensor raw value on analog port 0
     float pressureSensorVoltage = pressureSensorRaw * (5.0 / 1023.0);  // convert the raw reading to voltage
     float bar = (pressureSensorVoltage + 0.2) * 7/4.5;
