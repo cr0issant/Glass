@@ -512,7 +512,7 @@ void AvancementAzero ( void )
 // de rechercher constamment l'équilibre
 bool EquilibragePression ( int PressionAtrouver, int ValeurCapteurPression )
 {
-    int Tolerance = 500;
+    int Tolerance = 300;
     PressionAtrouver = map( PressionAtrouver, -1000, 3000, 0, 4000 );
     ValeurCapteurPression = map( ValeurCapteurPression, -1000, 3000, 0, 4000 );
     // On va à fond vers notre objectif de pression
