@@ -218,21 +218,22 @@ void loop()
             }
 
            // Condition pour jouer avec les fèches
-            if ( ( message == flecheBasse ) && ( EtatPression >= 0 ) )
+            if ( ( message == flecheBasse ) && ( EtatPression > -1000 ) )
             {
-                EtatPression -= 27;
+                EtatPression -= 250;
             }
-            else if ( ( message == flecheHaute ) && ( EtatPression <= 216 ) )
+            else if ( ( message == flecheHaute ) && ( EtatPression < 3000 ) )
             {
-                EtatPression += 27;
+                EtatPression += 250;
             }
             Temps +=1;
             if ( Temps > 200 ) 
             { 
               Temps = 0;
               // Mise à jour de la jauge de pression demandée par l'encodeur
+              //0 216 -1000 3000
               nextionSerial.print("z0.val=");
-              nextionSerial.print(EtatPression);
+              nextionSerial.print(map(EtatPression ,-1000 ,3000 ,0 ,215 ) );
               nextionSerial.write(0xff);
               nextionSerial.write(0xff);
               nextionSerial.write(0xff);
@@ -246,7 +247,7 @@ void loop()
 
               AffichageTimerGlobal ( "n1.val=", "n2.val=" );
             }
-            EquilibragePression ( map( EtatPression, 0, 216, -1000, 3000 ), RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
+            EquilibragePression ( EtatPression, RecuperationValeurCapteurPression ( CapteurPression1, atm ) );
         }
         // En quittant le programme on éteint tout
         digitalWrite(Pompe, LOW);
