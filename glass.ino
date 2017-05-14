@@ -430,10 +430,11 @@ bool MiseEnPression ( int Pression, long Cycle, int CapteurPression1, long Etape
           nextionSerial.write(0xff);
           nextionSerial.write(0xff);
           nextionSerial.write(0xff);
+          EquilibragePression ( Pression, RecuperationValeurCapteurPression ( CapteurPression1, atm ) ); 
         }
 
         // Equilibrage de secours en cas de manque
-        EquilibragePression ( Pression, RecuperationValeurCapteurPression ( CapteurPression1, atm ) ); 
+
         // Arrêt d'urgence si demandé
         message = nex.listen();
         // L arrêt d urgence au cas
@@ -511,27 +512,50 @@ void AvancementAzero ( void )
 // de rechercher constamment l'équilibre
 bool EquilibragePression ( int PressionAtrouver, int ValeurCapteurPression )
 {
+    int Tolerance = 50;
     PressionAtrouver = map( PressionAtrouver, -1000, 3000, 0, 4000 );
     ValeurCapteurPression = map( ValeurCapteurPression, -1000, 3000, 0, 4000 );
     // On va à fond vers notre objectif de pression
-    if ( ValeurCapteurPression <= PressionAtrouver - 50 )
+    if ( ValeurCapteurPression <= PressionAtrouver - Tolerance )
     {
       digitalWrite(Pompe, HIGH);
       digitalWrite(Electrovanne1, HIGH);
       digitalWrite(Electrovanne2, LOW);
+      nextionSerial.print("t4.txt=\"POMPE : ON\"");
+      nextionSerial.write(0xff);
+      nextionSerial.write(0xff);
+      nextionSerial.write(0xff);
+      
+      nextionSerial.print("t5.txt=\"ETAT : PRESS.\"");
+      nextionSerial.write(0xff);
+      nextionSerial.write(0xff);
+      nextionSerial.write(0xff);
       return 0;
     }
-    else if ( ValeurCapteurPression >= PressionAtrouver + 50  )
+    else if ( ValeurCapteurPression >= PressionAtrouver + Tolerance  )
     {
       digitalWrite(Pompe, HIGH);
       digitalWrite(Electrovanne1, LOW);
       digitalWrite(Electrovanne2, HIGH);
+      nextionSerial.print("t4.txt=\"POMPE : ON\"");
+      nextionSerial.write(0xff);
+      nextionSerial.write(0xff);
+      nextionSerial.write(0xff);
+      
+      nextionSerial.print("t5.txt=\"ETAT : DEPRESS.\"");
+      nextionSerial.write(0xff);
+      nextionSerial.write(0xff);
+      nextionSerial.write(0xff);
       return 0;
     }
     // On stoppe si on a atteint notre pression recherché avec +ou- 50 de tolérance
-    else if ( ( PressionAtrouver - 50 < ValeurCapteurPression < PressionAtrouver + 50 )  )
+    else if ( ( PressionAtrouver - Tolerance < ValeurCapteurPression < PressionAtrouver + Tolerance )  )
     {
       digitalWrite(Pompe, LOW);
+      nextionSerial.print("t4.txt=\"POMPE : OFF\"");
+      nextionSerial.write(0xff);
+      nextionSerial.write(0xff);
+      nextionSerial.write(0xff);
       return 1;
     }
     delay(1);
